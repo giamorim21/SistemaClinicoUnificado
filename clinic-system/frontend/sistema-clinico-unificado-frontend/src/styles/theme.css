@@ -1,0 +1,44 @@
+:root{
+  --brand:#0D6EFD;
+  --brand-dark:#0B5ED7;
+  --accent:#20C997;
+  --radius-lg:1rem;
+  --shadow-soft:0 10px 30px rgba(0,0,0,.08);
+}
+
+body{font-family:"Inter", system-ui, sans-serif; color:#212529}
+h1,h2,h3,h4,h5,h6{font-family:"Poppins", sans-serif}
+
+.section{padding:72px 0}
+.section:nth-of-type(even){background:linear-gradient(180deg,#f9fbff,#ffffff)}
+.section:nth-of-type(odd){background:linear-gradient(180deg,#ffffff,#f9fbff)}
+
+.card{border:none; border-radius:var(--radius-lg); box-shadow:var(--shadow-soft)}
+.brand-left-border{border-left:6px solid var(--brand)}
+.list-check li{margin-bottom:.5rem}
+.list-check i{color:var(--accent)}
+.list-bullets{padding-left:1rem}
+.list-bullets li{margin:.5rem 0}
+.list-tight li{margin:.35rem 0}
+
+.hero{
+  background: linear-gradient(135deg, #0D6EFD, #20C997);
+  color: white;
+  position: relative;
+}
+.hero .overlay{
+  position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:0;
+}
+.hero .container{position:relative; z-index:1}
+.hero::after{
+  content:"";
+  position:absolute; inset:0;
+  background:url('https://source.unsplash.com/1600x900/?healthcare,hospital') center/cover no-repeat;
+  opacity:.15;
+}
+
+/* Fundos pedidos */
+#quem-somos{ background: linear-gradient(135deg, #04bbdf, #04bbdf) !important; }
+#motivo{ background: linear-gradient(135deg, #04bbdf, #04bbdf) !important; }
+
+.background-blue{ background-color:#0D6EFD; color:#fff; }
