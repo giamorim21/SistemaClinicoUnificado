@@ -1,9 +1,12 @@
 :root{
-  --brand:#0D6EFD;
-  --brand-dark:#0B5ED7;
-  --accent:#20C997;
-  --radius-lg:1rem;
-  --shadow-soft:0 10px 30px rgba(0,0,0,.08);
+  --brand:#0D6EFD;        /* azul primário */
+  --brand-dark:#0B5ED7;   /* azul primário escuro */
+  --accent:#20C997;       /* verde água */
+  --ink:#212529;          /* cor de texto escura */
+  --soft:#f9fbff;         /* cinza-azulado muito claro */
+  --radius:1rem;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+  --special: linear-gradient(135deg, #04bbdf, #025159);
 }
 
 body{font-family:"Inter", system-ui, sans-serif; color:#212529}
