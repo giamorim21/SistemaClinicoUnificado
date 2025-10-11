@@ -200,8 +200,8 @@ export default function Home() {
       <Section id="cta" className="cta">
         <div className="row g-4 align-items-center">
           <div className="col-lg-6 text-black">
-            <h2 className="fw-bold mb-3 text-black">Transforme a Gestão da sua Clínica Hoje Mesmo.</h2>
-            <p className="mb-0">
+            <h2 className="fw-bold mb-3 text-white">Transforme a Gestão da sua Clínica Hoje Mesmo.</h2>
+            <p className="mb-0 text-white fw-semibold">
               Preencha o formulário e nossa equipe entrará em contato para agendar uma demonstração personalizada.
             </p>
           </div>

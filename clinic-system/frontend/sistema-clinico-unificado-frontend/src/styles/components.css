@@ -13,7 +13,7 @@ h1,h2,h3,h4,h5,h6{ font-family:"Poppins", ui-serif, system-ui; }
   box-shadow:0 6px 18px rgba(0,0,0,.04);
   border-bottom:1px solid rgba(33,37,41,.10);
   background:rgb(0, 133, 152);
-  height:80px;
+  height:65px;
 }
 .navbar-brand{ font-weight:700; letter-spacing:.5px; color:#fff; }
 .navbar .nav-link{ color:#fff; font-weight:500; }
@@ -30,7 +30,7 @@ h1,h2,h3,h4,h5,h6{ font-family:"Poppins", ui-serif, system-ui; }
 
 /* ===== Hero ===== */
 .hero{
-  position:relative; min-height:100vh; display:flex; align-items:center;
+  position:relative; min-height:90vh; display:flex; align-items:center;
   background:url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=1920&auto=format&fit=crop');
   background-size:cover; background-position:center; color:#fff; overflow:hidden;
 }
