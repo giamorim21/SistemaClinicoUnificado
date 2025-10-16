@@ -44,11 +44,16 @@
   
   
   /* Formulário */
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
+  /* Select com o mesmo estilo dos inputs */
+.login-form select {
+  padding: 12px;
+  background-color: #fff;
+  border: 1px solid #999;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #000;
+}
+
   
   .login-form label {
     font-size: 16px;
@@ -152,4 +157,22 @@
     border-bottom-left-radius: 40px;
   }
   
+  /* Container flex para centralizar o formulário e evitar invasão do header/footer */
+.register-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  min-height: calc(100vh - 160px); /* ajusta conforme altura da navbar/footer */
+  padding: 40px 0;                 /* espaçamento superior e inferior */
+  box-sizing: border-box;
+}
+
+/* Garante que o login-container não force 100vh total */
+.login-container {
+  height: auto;
+  min-height: 0;
+}
+
   

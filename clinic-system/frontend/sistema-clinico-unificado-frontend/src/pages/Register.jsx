@@ -4,73 +4,147 @@ import "../styles/register.css";
 
 function TelaCadastro() {
   const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [confirmarEmail, setConfirmarEmail] = useState("");
+  const [dataNasc, setDataNasc] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [genero, setGenero] = useState("");
+  const [nacionalidade, setNacionalidade] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [consentimento, setConsentimento] = useState(false);
+
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(false);
 
-  const validarSenha = (senha) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(senha);
+  // Senha: 8+ chars, 1 maiúscula e 1 número
+  const validarSenha = (s) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(s);
+
+  // Validador de CPF (com dígitos verificadores)
+  const validarCPF = (valor) => {
+    const c = (valor || "").replace(/\D/g, "");
+    if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(c.charAt(i)) * (10 - i);
+    let d1 = 11 - (soma % 11);
+    d1 = d1 >= 10 ? 0 : d1;
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(c.charAt(i)) * (11 - i);
+    let d2 = 11 - (soma % 11);
+    d2 = d2 >= 10 ? 0 : d2;
+    return d1 === parseInt(c.charAt(9)) && d2 === parseInt(c.charAt(10));
+  };
 
   const handleCadastro = (e) => {
     e.preventDefault();
     setErro("");
     setSucesso(false);
 
-    if (email !== confirmarEmail) {
-      setErro("Os e-mails não coincidem.");
+    // Campos obrigatórios
+    if (!nome || !dataNasc || !endereco || !cpf || !genero || !nacionalidade) {
+      setErro("Preencha todos os campos obrigatórios.");
       return;
     }
+
+    // CPF
+    if (!validarCPF(cpf)) {
+      setErro("Informe um CPF válido.");
+      return;
+    }
+
+    // Senha
     if (senha !== confirmarSenha) {
       setErro("As senhas não coincidem.");
       return;
     }
     if (!validarSenha(senha)) {
-      setErro("A senha deve conter ao menos 8 caracteres, uma letra maiúscula e um número.");
+      setErro("A senha deve ter 8+ caracteres, 1 letra maiúscula e 1 número.");
       return;
     }
 
-    // Simulação de cadastro somente no front-end
+    // Consentimento LGPD
+    if (!consentimento) {
+      setErro("É necessário aceitar o consentimento de privacidade.");
+      return;
+    }
+
+    // Simulação de cadastro (apenas front-end)
     setSucesso(true);
-    // Se quiser “limpar” o formulário após sucesso:
-    // setNome(""); setEmail(""); setConfirmarEmail(""); setSenha(""); setConfirmarSenha("");
   };
 
   return (
+  <div className="register-wrapper">
     <div className="login-container">
       <div className="login-left">
         <div className="login-box">
           <h1>Bem vindo ao SCU!</h1>
-          <p className="subtitle">Insira suas credenciasi, assim podemos criar sua conta</p>
+          <p className="subtitle">Preencha os dados para criarmos sua conta</p>
 
           <form className="login-form" onSubmit={handleCadastro}>
             <label>Nome</label>
             <input
               type="text"
-              placeholder="Enter your name"
+              placeholder="Digite seu nome completo"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
             />
 
-            <label>Endereço de email</label>
+            <label>Data de nascimento</label>
             <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="date"
+              value={dataNasc}
+              onChange={(e) => setDataNasc(e.target.value)}
               required
             />
 
-            <label>Confirme seu email</label>
+            <label>Endereço</label>
             <input
-              type="email"
-              placeholder="Confirm your email"
-              value={confirmarEmail}
-              onChange={(e) => setConfirmarEmail(e.target.value)}
+              type="text"
+              placeholder="Rua, número, bairro, cidade"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
               required
             />
+
+            <label>CPF</label>
+            <input
+              type="text"
+              placeholder="000.000.000-00"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+              inputMode="numeric"
+              pattern="\d{3}\.?\d{3}\.?\d{3}-?\d{2}"
+              required
+            />
+
+            <label>Gênero</label>
+            <select
+              value={genero}
+              onChange={(e) => setGenero(e.target.value)}
+              required
+            >
+              <option value="" disabled>Selecione</option>
+              <option value="feminino">Feminino</option>
+              <option value="masculino">Masculino</option>
+              <option value="nao-binario">Não-binário</option>
+              <option value="prefiro-nao-informar">Prefiro não informar</option>
+              <option value="outro">Outro</option>
+            </select>
+
+            <label>Nacionalidade</label>
+            <select
+              value={nacionalidade}
+              onChange={(e) => setNacionalidade(e.target.value)}
+              required
+            >
+              <option value="" disabled>Selecione</option>
+              <option value="brasileira">Brasileira</option>
+              <option value="alemã">Alemã</option>
+              <option value="portuguesa">Portuguesa</option>
+              <option value="espanhola">Espanhola</option>
+              <option value="italiana">Italiana</option>
+              <option value="outra">Outra</option>
+            </select>
 
             <label>Senha</label>
             <input
@@ -92,13 +166,25 @@ function TelaCadastro() {
 
             <div className="form-options">
               <label>
-                <input type="checkbox" required /> I agree to the <a href="#">terms &amp; policy</a>
+                <input
+                  type="checkbox"
+                  checked={consentimento}
+                  onChange={(e) => setConsentimento(e.target.checked)}
+                  required
+                />{" "}
+                Li e concordo com o{" "}
+                <a href="#">termo de consentimento e privacidade</a>.
               </label>
             </div>
 
             <button type="submit">Criar</button>
+
             {erro && <p style={{ color: "red" }}>{erro}</p>}
-            {sucesso && <p style={{ color: "green" }}>Cadastro realizado com sucesso! (somente front-end)</p>}
+            {sucesso && (
+              <p style={{ color: "green" }}>
+                Cadastro realizado com sucesso! (somente front-end)
+              </p>
+            )}
 
             <div className="divider">or</div>
 
@@ -108,9 +194,12 @@ function TelaCadastro() {
           </form>
         </div>
       </div>
+
       <div className="login-right"></div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default TelaCadastro;

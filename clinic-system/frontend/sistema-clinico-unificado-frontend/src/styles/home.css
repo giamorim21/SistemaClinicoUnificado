@@ -37,7 +37,7 @@ h1,h2,h3,h4,h5,h6{font-family:"Poppins", sans-serif}
   content:"";
   position:absolute; inset:0;
   background:url('https://source.unsplash.com/1600x900/?healthcare,hospital') center/cover no-repeat;
-  opacity:.15;
+  opacity:.95;
 }
 
 /* Fundos pedidos */
