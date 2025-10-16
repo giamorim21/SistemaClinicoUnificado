@@ -1,8 +1,8 @@
 import React from "react";
 
-export default function Section({ id, className = "", children }) {
+export default function Section({ id, soft = false, className = "", children }) {
   return (
-    <section id={id} className={`section ${className}`.trim()}>
+    <section id={id} className={`section ${soft ? "section-soft" : ""} ${className}`}>
       <div className="container">{children}</div>
     </section>
   );

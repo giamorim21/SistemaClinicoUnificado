@@ -1,9 +1,12 @@
 :root{
-  --brand:#0D6EFD;
-  --brand-dark:#0B5ED7;
-  --accent:#20C997;
-  --radius-lg:1rem;
-  --shadow-soft:0 10px 30px rgba(0,0,0,.08);
+  --brand:#0D6EFD;        /* azul primário */
+  --brand-dark:#0B5ED7;   /* azul primário escuro */
+  --accent:#20C997;       /* verde água */
+  --ink:#212529;          /* cor de texto escura */
+  --soft:#f9fbff;         /* cinza-azulado muito claro */
+  --radius:1rem;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+  --special: linear-gradient(135deg, #04bbdf, #025159);
 }
 
 body{font-family:"Inter", system-ui, sans-serif; color:#212529}
@@ -34,11 +37,11 @@ h1,h2,h3,h4,h5,h6{font-family:"Poppins", sans-serif}
   content:"";
   position:absolute; inset:0;
   background:url('https://source.unsplash.com/1600x900/?healthcare,hospital') center/cover no-repeat;
-  opacity:.15;
+  opacity:.95;
 }
 
 /* Fundos pedidos */
-#quem-somos{ background: linear-gradient(135deg, #04bbdf, #04bbdf) !important; }
+#cta{ background: linear-gradient(135deg, #057991, #086375) !important; }
 #motivo{ background: linear-gradient(135deg, #04bbdf, #04bbdf) !important; }
 
 .background-blue{ background-color:#0D6EFD; color:#fff; }

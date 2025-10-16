@@ -1,0 +1,95 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap");
+
+html, body { height: 100%; }
+body{
+  font-family:"Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color:var(--ink);
+  background:#fff;
+}
+h1,h2,h3,h4,h5,h6{ font-family:"Poppins", ui-serif, system-ui; }
+
+/* ===== Navbar ===== */
+.navbar{
+  box-shadow:0 6px 18px rgba(0,0,0,.04);
+  border-bottom:1px solid rgba(33,37,41,.10);
+  background:rgb(0, 133, 152);
+  height:65px;
+}
+.navbar-brand{ font-weight:700; letter-spacing:.5px; color:#fff; }
+.navbar .nav-link{ color:#fff; font-weight:500; }
+.navbar .nav-link:hover{ color:var(--brand); }
+.btn-demo{
+  background:var(--brand); color:#fff; font-weight:600;
+  border-radius:999px; padding:.5rem 1rem;
+}
+.btn-demo:hover{ background:var(--brand-dark); color:#fff; }
+
+/* ===== Sections ===== */
+.section{ padding:72px 0; }
+.section-soft{ background: linear-gradient(180deg, #ffffff 0%, var(--soft) 100%); }
+
+/* ===== Hero ===== */
+.hero{
+  position:relative; min-height:78vh; display:flex; align-items:center;
+  background:url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=1920&auto=format&fit=crop');
+  background-size:cover; background-position:center; color:#fff; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; inset:0; background:rgba(0,0,0,.55);
+}
+.hero-content{ position:relative; z-index:2; }
+.hero .badge-pill{
+  border-radius:999px; background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.3); color:#fff; backdrop-filter:blur(6px);
+}
+.btn-hero{
+  background:var(--brand); border:none; color:#fff; padding:.85rem 1.4rem;
+  border-radius:.75rem; font-weight:700; transition:transform .2s ease, background .2s ease;
+}
+.btn-hero:hover{ background:var(--brand-dark); transform:translateY(-1px); }
+
+/* ===== Lists with checks ===== */
+.list-check li{ display:flex; gap:.5rem; align-items:flex-start; margin-bottom:.5rem; }
+.list-check i{ margin-top:.2rem; }
+
+/* ===== Cards with left border highlight ===== */
+.card-lift{
+  border:none; border-left:6px solid var(--brand); border-radius:var(--radius); box-shadow:var(--shadow);
+}
+.card-lift.green{ border-left-color:var(--accent); }
+
+/* ===== Platform Tabs ===== */
+.nav-pills .nav-link{
+  border-radius:999px; font-weight:600; color:var(--ink); background:#f1f4f9;
+}
+.nav-pills .nav-link.active{ background:var(--brand); color:#fff; }
+.platform-graphic{ border-radius:var(--radius); box-shadow:var(--shadow); }
+
+/* ===== CTA ===== */
+.cta {
+  background: var(--special);
+  color: #000; /* 🔹 todo o texto dentro da seção será preto */
+}
+
+.cta .form-control {
+  border-radius: .75rem;
+}
+
+.cta .btn-submit {
+  background: var(--brand-dark);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: .75rem;
+  padding: .8rem 1.2rem;
+}
+
+.cta .btn-submit:hover {
+  background: #0a53be;
+}
+
+/* ===== Footer ===== */
+footer{ background:var(--ink); color:#f8f9fa; }
+footer .top-line{ border-top:1px solid rgba(255,255,255,.15); }
+footer a{ color:#ced4da; text-decoration:none; }
+footer a:hover{ color:#fff; text-decoration:underline; }

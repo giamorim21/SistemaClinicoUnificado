@@ -1,255 +1,250 @@
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
+import React from "react";
 import Section from "../components/Section";
-import Carousel from "../components/Carousel";
-import Footer from "../components/Footer";
+
+/* HERO está como componente separado */
+import Hero from "../components/Hero";
+
+/* QUEM SOMOS é uma page própria */
+import QuemSomos from "./QuemSomos";
 
 export default function Home() {
   return (
     <>
-      <Navbar />
       <Hero />
 
-      {/* Visão Geral (separada do carrossel) */}
-      <Section id="visao-geral">
-        <div className="row g-4 align-items-center">
+      {/* 2. DESAFIOS & SOLUÇÃO */}
+      <Section id="solucao">
+        <div className="row align-items-center g-5">
+          {/* Esquerda */}
           <div className="col-lg-6">
-            <div className="brand-left-border p-4 bg-white rounded-4 shadow-soft h-100">
-              <h2 className="fw-bold mb-2">Visão Geral</h2>
-              <p className="text-secondary mb-0">
-                O SCU centraliza todas as etapas do atendimento clínico — do primeiro contato do paciente à consulta médica — em um sistema único.
-                Com interfaces pensadas para cada perfil (paciente, recepção, triagem, médico e gestor), reduz papéis, elimina retrabalhos e
-                fornece dados confiáveis para decisões mais rápidas.
-              </p>
-            </div>
-          </div>
-          <div className="col-lg-6 text-center">
-            <img src="/assets/medico.jpg" alt="Médico" className="img-fluid rounded-4 shadow-soft" />
-          </div>
-        </div>
-      </Section>
+            <h2 className="fw-bold mb-3">Desafios da Gestão Clínica</h2>
+            <p className="text-secondary mb-4">Os gargalos que atrasam o atendimento e elevam custos:</p>
 
-      {/* Carrossel de imagens */}
-      <Carousel />
-
-      {/* Quem Somos */}
-      <Section id="quem-somos">
-        <div className="card shadow-soft p-4 text-center">
-          <h2 className="fw-bold mb-3">Quem Somos</h2>
-          <p className="mx-auto" style={{ maxWidth: 800 }}>
-            Somos uma equipe multidisciplinar dedicada a transformar a experiência clínica por meio da tecnologia.
-            Nosso objetivo é simplificar o fluxo de atendimento, garantindo eficiência, segurança e centralização de dados para médicos, pacientes e gestores.
-          </p>
-        </div>
-      </Section>
-
-      {/* Motivo */}
-      <Section id="motivo">
-        <div className="row align-items-center g-4">
-          <div className="col-lg-6">
-            <div className="card shadow-soft mb-3">
-              <div className="card-body p-4">
-                <h2 className="fw-bold mb-2">Por que o SCU existe</h2>
-                <ul className="list-bullets mb-0">
-                  <li><strong>Excesso de processos manuais</strong>: formulários, cópias, retrabalho.</li>
-                  <li><strong>Sistemas desconectados</strong>: informação fragmentada entre áreas.</li>
-                  <li><strong>Tempo de espera alto</strong>: cadastros repetidos e filas desnecessárias.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-6">
-            <div className="card shadow-soft mb-3">
-              <div className="card-body p-4">
-                <h6 className="text-uppercase">Como resolvemos</h6>
-                <ul className="small list-check mb-0">
-                  <li><i className="bi bi-check2-circle me-2"></i>Jornada contínua e sem papel</li>
-                  <li><i className="bi bi-check2-circle me-2"></i>Dados integrados em tempo real</li>
-                  <li><i className="bi bi-check2-circle me-2"></i>Fluxos otimizados por perfil de usuário</li>
-                </ul>
-              </div>
-            </div>
-            <img src="/assets/hospital.jpg" alt="Descrição da imagem" className="img-fluid rounded-4 shadow-soft" />
-          </div>
-        </div>
-      </Section>
-
-      {/* Como funciona */}
-      <Section id="como">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Como funciona</h2>
-          <p className="text-secondary">Do app do paciente à plataforma clínica, tudo conectado</p>
-        </div>
-        <div className="row g-4">
-          <div className="col-md-6">
-            <div className="p-4 bg-white rounded-4 shadow-soft h-100">
-              <div className="d-flex align-items-center mb-2">
-                <i className="bi bi-phone-vibrate fs-2 text-primary me-2"></i><h5 className="mb-0">App do Paciente</h5>
-              </div>
-              <ul className="small text-secondary list-bullets mb-0">
-                <li>Autocadastro seguro</li>
-                <li>Chatbot de triagem com sugestão de especialista</li>
-                <li>Histórico de consultas, exames e prescrições</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="col-md-6">
-            <div className="p-4 bg-white rounded-4 shadow-soft h-100">
-              <div className="d-flex align-items-center mb-2">
-                <i className="bi bi-pc-display fs-2 text-primary me-2"></i><h5 className="mb-0">Plataforma Clínica</h5>
-              </div>
-              <ul className="small text-secondary list-bullets mb-0">
-                <li>Recepção digital: busca, agendamento e check-in</li>
-                <li>Triagem: sinais vitais e observações integradas</li>
-                <li>Médico (PEP): evolução, pedidos e prescrições digitais</li>
-                <li>Gestão: KPIs em tempo real e relatórios</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Capacidades */}
-      <Section id="capacidades" className="bg-soft">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">O que o sistema é capaz de fazer</h2>
-          <p className="text-secondary">Capacidades-chave para cada etapa do atendimento</p>
-        </div>
-        <div className="row g-4">
-          {[
-            {i:"bi-person-plus", t:"Autocadastro", d:"Crie perfis de pacientes com segurança e rapidez."},
-            {i:"bi-chat-dots", t:"Triagem por Chatbot", d:"Coleta sintomas e sugere o especialista adequado."},
-            {i:"bi-calendar-check", t:"Agendamento & Check-in", d:"Organize agendas e reduza filas e retrabalhos."},
-            {i:"bi-journal-medical", t:"Prontuário Eletrônico", d:"Histórico unificado para decisões mais rápidas."},
-            {i:"bi-activity", t:"Triagem Digital", d:"Registre sinais vitais e observações iniciais."},
-            {i:"bi-file-earmark-plus", t:"Pedidos & Prescrições", d:"Solicite exames e gere prescrições digitais."},
-            {i:"bi-graph-up", t:"Dashboards & KPIs", d:"Tempo de espera, picos de agenda e mais."},
-            {i:"bi-diagram-3", t:"Integrações", d:"APIs e webhooks com ERPs e mensageria."},
-          ].map((c, idx) => (
-            <div className="col-sm-6 col-lg-3" key={idx}>
-              <div className="cap card p-4 h-100">
-                <i className={`${c.i} text-primary fs-3`}></i>
-                <h6 className="mt-2">{c.t}</h6>
-                <p className="small text-secondary mb-0">{c.d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* Benefícios */}
-      <Section id="beneficios">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Benefícios para cada perfil</h2>
-          <p className="text-secondary">Mais agilidade para todos os envolvidos</p>
-        </div>
-        <div className="row g-4">
-          {[
-            {t:"Paciente", it:["Jornada digital antes de chegar","Transparência do histórico","Notificações e lembretes"]},
-            {t:"Recepção", it:["Check-in rápido e sem papel","Busca e cadastro unificados","Agendamento simples"]},
-            {t:"Triagem", it:["Visualização da triagem do chatbot","Registro de sinais vitais","Padronização de protocolos"]},
-            {t:"Médico", it:["Visão completa do paciente","Evolução e diagnóstico","Pedidos e prescrições digitais"]},
-            {t:"Gestor", it:["KPIs em tempo real","Relatórios por período","Governança e auditoria"]},
-          ].map((b, idx)=>(
-            <div className="col-md-6 col-lg-4" key={idx}>
-              <div className="p-4 bg-white rounded-4 shadow-soft h-100">
-                <h6>{b.t}</h6>
-                <ul className="small text-secondary list-tight mb-0">
-                  {b.it.map((x,i)=><li key={i}>{x}</li>)}
-                </ul>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* Segurança */}
-      <Section id="seguranca" className="bg-soft">
-        <div className="row g-4 align-items-center">
-          <div className="col-lg-6">
-            <h2 className="fw-bold mb-2">Segurança e Confiabilidade</h2>
-            <ul className="text-secondary list-bullets mb-0">
-              <li>Conformidade com a LGPD</li>
-              <li>Criptografia em trânsito e em repouso</li>
-              <li>Controle de acesso baseado em perfis (RBAC)</li>
-              <li>Disponibilidade mínima de 99,5%</li>
-              <li>Logs e trilhas de auditoria</li>
+            <ul className="list-unstyled list-check">
+              <li><i className="bi bi-check2-circle text-success"></i><span>Burocracia e retrabalho em cadastros e fichas.</span></li>
+              <li><i className="bi bi-check2-circle text-success"></i><span>Baixa integração entre recepção, triagem e atendimento.</span></li>
+              <li><i className="bi bi-check2-circle text-success"></i><span>Fila e tempo de espera imprevisíveis.</span></li>
+              <li><i className="bi bi-check2-circle text-success"></i><span>Dificuldade em enxergar indicadores e relatórios.</span></li>
+              <li><i className="bi bi-check2-circle text-success"></i><span>Riscos de compliance e segurança de dados.</span></li>
             </ul>
           </div>
+
+          {/* Direita */}
           <div className="col-lg-6">
-            <div className="card shadow-soft">
-              <div className="card-body p-4">
-                <h6 className="text-uppercase text-secondary">Qualidade de experiência</h6>
-                <p className="small text-secondary mb-0">
-                  Interface clara para pacientes e fluxos otimizados para profissionais. Dados consistentes refletidos em tempo real entre todos os módulos, com compatibilidade entre os principais navegadores modernos.
-                </p>
+            <div className="position-relative">
+              <img
+                className="img-fluid rounded-4 shadow platform-graphic"
+                alt="Mockup do dashboard SCU em tablet"
+                src="https://images.unsplash.com/photo-1586773860383-d828d9d42fa2?q=80&w=1400&auto=format&fit=crop"
+              />
+            </div>
+            <div className="mt-3 small text-secondary">
+              Dashboard principal com indicadores claros, listas priorizadas e gráficos.
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* 3. QUEM SOMOS */}
+      <QuemSomos />
+
+      {/* 4. PLATAFORMA COMPLETA */}
+      <Section id="plataforma">
+        <div className="text-center mb-4">
+          <h2 className="fw-bold">Uma Plataforma Completa para sua Clínica</h2>
+          <p className="text-secondary">Benefícios específicos para cada perfil — com um fluxo simples e integrado.</p>
+        </div>
+
+        {/* Tabs */}
+        <ul className="nav nav-pills justify-content-center gap-2 mb-4" id="pills-tab" role="tablist">
+          <li className="nav-item" role="presentation">
+            <button className="nav-link active" id="gestores-tab" data-bs-toggle="pill" data-bs-target="#gestores" type="button" role="tab" aria-controls="gestores" aria-selected="true">Gestores</button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button className="nav-link" id="medicos-tab" data-bs-toggle="pill" data-bs-target="#medicos" type="button" role="tab" aria-controls="medicos" aria-selected="false">Médicos</button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button className="nav-link" id="recepcao-tab" data-bs-toggle="pill" data-bs-target="#recepcao" type="button" role="tab" aria-controls="recepcao" aria-selected="false">Recepção</button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button className="nav-link" id="pacientes-tab" data-bs-toggle="pill" data-bs-target="#pacientes" type="button" role="tab" aria-controls="pacientes" aria-selected="false">Pacientes</button>
+          </li>
+        </ul>
+
+        <div className="tab-content" id="pills-tabContent">
+          {/* GESTORES */}
+          <div className="tab-pane fade show active" id="gestores" role="tabpanel" aria-labelledby="gestores-tab" tabIndex="0">
+            <div className="row align-items-center g-4">
+              <div className="col-lg-6">
+                <h5 className="fw-bold">Indicadores em tempo real</h5>
+                <p className="text-secondary">Acompanhe capacidade, filas, SLA de triagem e produtividade. Gere relatórios e antecipe decisões.</p>
+                <ul className="list-unstyled list-check">
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Dashboards personalizáveis.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Alertas e metas operacionais.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Exportações e integrações.</span></li>
+                </ul>
+              </div>
+              <div className="col-lg-6">
+                <img className="img-fluid platform-graphic" alt="Fluxo da plataforma para gestores"
+                     src="https://images.unsplash.com/photo-1581091014534-8986b0628f45?q=80&w=1400&auto=format&fit=crop" />
+              </div>
+            </div>
+          </div>
+
+          {/* MÉDICOS */}
+          <div className="tab-pane fade" id="medicos" role="tabpanel" aria-labelledby="medicos-tab" tabIndex="0">
+            <div className="row align-items-center g-4">
+              <div className="col-lg-6">
+                <h5 className="fw-bold">Prontuário e atendimento sem atritos</h5>
+                <p className="text-secondary">Histórico completo, triagem prévia e prescrições integradas facilitam decisões clínicas.</p>
+                <ul className="list-unstyled list-check">
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Resumo pré-consulta e alertas.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Pedidos e laudos integrados.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Modelos e atalhos inteligentes.</span></li>
+                </ul>
+              </div>
+              <div className="col-lg-6">
+                <img className="img-fluid platform-graphic" alt="Fluxo da plataforma para médicos"
+                     src="https://images.unsplash.com/photo-1587502536981-2f2b6d9e4f58?q=80&w=1400&auto=format&fit=crop" />
+              </div>
+            </div>
+          </div>
+
+          {/* RECEPÇÃO */}
+          <div className="tab-pane fade" id="recepcao" role="tabpanel" aria-labelledby="recepcao-tab" tabIndex="0">
+            <div className="row align-items-center g-4">
+              <div className="col-lg-6">
+                <h5 className="fw-bold">Recepção ágil e integrada</h5>
+                <p className="text-secondary">Cadastro inteligente, conferência de convênio e fila organizada por prioridade.</p>
+                <ul className="list-unstyled list-check">
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Busca rápida e pré-cadastro pelo app.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Token/QR para evitar retrabalho.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Comunicação direta com triagem.</span></li>
+                </ul>
+              </div>
+              <div className="col-lg-6">
+                <img className="img-fluid platform-graphic" alt="Fluxo da plataforma para recepção"
+                     src="https://images.unsplash.com/photo-1586861203924-4f8f7f8a5c05?q=80&w=1400&auto=format&fit=crop" />
+              </div>
+            </div>
+          </div>
+
+          {/* PACIENTES */}
+          <div className="tab-pane fade" id="pacientes" role="tabpanel" aria-labelledby="pacientes-tab" tabIndex="0">
+            <div className="row align-items-center g-4">
+              <div className="col-lg-6">
+                <h5 className="fw-bold">Experiência do paciente no centro</h5>
+                <p className="text-secondary">App intuitivo para cadastro, histórico, exames e acompanhamento do atendimento.</p>
+                <ul className="list-unstyled list-check">
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Triagem orientada por chatbot.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Transparência de status e orientações.</span></li>
+                  <li><i className="bi bi-check2-circle text-success"></i><span>Confirmações e lembretes automáticos.</span></li>
+                </ul>
+              </div>
+              <div className="col-lg-6">
+                <img className="img-fluid platform-graphic" alt="Fluxo da plataforma para pacientes"
+                     src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1400&auto=format&fit=crop" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Infográfico */}
+        <div className="mt-5">
+          <div className="bg-white p-4 platform-graphic">
+            <div className="row text-center g-4 align-items-center">
+              <div className="col-md-3">
+                <i className="bi bi-calendar-check fs-1 text-primary d-block mb-2"></i>
+                <div className="small">Agende &amp; Triagem</div>
+              </div>
+              <div className="col-md-1 d-none d-md-block"><i className="bi bi-arrow-right fs-3"></i></div>
+              <div className="col-md-3">
+                <i className="bi bi-clipboard2-pulse fs-1 text-primary d-block mb-2"></i>
+                <div className="small">Atendimento Clínico</div>
+              </div>
+              <div className="col-md-1 d-none d-md-block"><i className="bi bi-arrow-right fs-3"></i></div>
+              <div className="col-md-3">
+                <i className="bi bi-bar-chart-line fs-1 text-primary d-block mb-2"></i>
+                <div className="small">Gestão &amp; Análise</div>
               </div>
             </div>
           </div>
         </div>
       </Section>
 
-      {/* Integrações */}
-      <Section id="integracoes">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Integrações e arquitetura</h2>
-          <p className="text-secondary">Aberto, escalável e pronto para crescer</p>
+      {/* 5. SEGURANÇA */}
+      <Section id="seguranca" soft>
+        <div className="text-center mb-4">
+          <h2 className="fw-bold">Segurança e Conformidade</h2>
+          <p className="text-secondary">Robustez e confiança de ponta a ponta.</p>
         </div>
+
         <div className="row g-4">
-          <div className="col-lg-6">
-            <div className="p-4 bg-white rounded-4 shadow-soft h-100">
-              <h6 className="text-uppercase text-secondary mb-2">Integrações</h6>
-              <ul className="small text-secondary list-bullets mb-0">
-                <li>APIs REST para ERPs e prontuários</li>
-                <li>Webhooks para laudos e eventos</li>
-                <li>Mensageria: e-mail, SMS e WhatsApp*</li>
-              </ul>
-              <p className="text-secondary small mt-2 mb-0">*A depender do provedor contratado.</p>
+          {[
+            { icon: "bi-shield-lock", title: "Conformidade LGPD", txt: "Coleta, armazenamento e processamento conforme boas práticas e princípios da LGPD." },
+            { icon: "bi-cloud-check", title: "Segurança em Nuvem", txt: "Criptografia em trânsito e em repouso, controle de acesso e auditorias periódicas." },
+            { icon: "bi-fingerprint", title: "Autenticação Forte", txt: "MFA, políticas de senha e trilhas de auditoria para máxima rastreabilidade." },
+          ].map((c, i) => (
+            <div className="col-lg-4" key={i}>
+              <div className="card card-lift green p-4 h-100">
+                <div className="text-center mb-3"><i className={`bi ${c.icon} fs-1 text-success`} /></div>
+                <h5 className="text-center mb-2">{c.title}</h5>
+                <p className="text-secondary text-center mb-0">{c.txt}</p>
+              </div>
             </div>
-          </div>
-          <div className="col-lg-6">
-            <div className="p-4 bg-white rounded-4 shadow-soft h-100">
-              <h6 className="text-uppercase text-secondary mb-2">Arquitetura</h6>
-              <ul className="small text-secondary list-bullets mb-0">
-                <li>Cloud first com opção on-premise</li>
-                <li>Escalabilidade horizontal e observabilidade</li>
-                <li>Logs centralizados e monitoramento</li>
-              </ul>
-            </div>
-          </div>
+          ))}
         </div>
       </Section>
 
-      {/* Contato */}
-      <Section id="contato">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Fale Conosco</h2>
-          <p className="text-secondary">Envie sua mensagem e nossa equipe retornará em breve</p>
-        </div>
-        <div className="row justify-content-center">
-          <div className="col-lg-8">
-            <form className="card shadow-soft p-4" onSubmit={(e)=>e.preventDefault()}>
-              <div className="mb-3">
-                <label htmlFor="nome" className="form-label">Nome</label>
-                <input type="text" id="nome" className="form-control" required />
+      {/* 6. CTA */}
+      <Section id="cta" className="cta">
+        <div className="row g-4 align-items-center">
+          <div className="col-lg-6 text-black">
+            <h2 className="fw-bold mb-3 text-white">Transforme a Gestão da sua Clínica Hoje Mesmo.</h2>
+            <p className="mb-0 text-white fw-semibold">
+              Preencha o formulário e nossa equipe entrará em contato para agendar uma demonstração personalizada.
+            </p>
+          </div>
+
+          <div className="col-lg-6">
+            <form className="bg-white rounded-4 p-4 shadow">
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <label className="form-label">Nome</label>
+                  <input type="text" className="form-control" placeholder="Seu nome" required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">E-mail</label>
+                  <input type="email" className="form-control" placeholder="seu@email.com" required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Telefone</label>
+                  <input type="tel" className="form-control" placeholder="(00) 00000-0000" required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cargo</label>
+                  <select className="form-select" defaultValue="Selecione…">
+                    <option>Selecione…</option>
+                    <option>Gestor</option>
+                    <option>Médico</option>
+                    <option>Recepção</option>
+                    <option>TI/Compliance</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+                <div className="col-12">
+                  <label className="form-label">Mensagem (opcional)</label>
+                  <textarea className="form-control" rows="3" placeholder="Conte brevemente sobre sua clínica e necessidades" />
+                </div>
+                <div className="col-12 d-grid d-sm-flex gap-3">
+                  <button type="submit" className="btn btn-submit">Solicitar Demonstração</button>
+                  <div className="d-flex align-items-center text-muted small">Resposta em até 1 dia útil</div>
+                </div>
               </div>
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">E-mail</label>
-                <input type="email" id="email" className="form-control" required />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="mensagem" className="form-label">Mensagem</label>
-                <textarea id="mensagem" className="form-control" rows="5" required></textarea>
-              </div>
-              <button type="submit" className="btn btn-primary">Enviar</button>
             </form>
           </div>
         </div>
       </Section>
-
-      <Footer />
     </>
   );
 }
