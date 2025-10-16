@@ -93,18 +93,14 @@ function TelaLogin() {
         {/* Carrossel mantido intacto */}
         <div className="brand-carousel" aria-label="logos de parceiros">
           <div className="brand-track">
-            <img src="" alt="logo 1" />
-            <img src="" alt="logo 2" />
-            <img src="" alt="logo 3" />
-            <img src="" alt="logo 4" />
-            <img src="" alt="logo 5" />
-            <img src="" alt="logo 6" />
-            <img src="" alt="logo 1" />
-            <img src="" alt="logo 2" />
-            <img src="" alt="logo 3" />
-            <img src="" alt="logo 4" />
-            <img src="" alt="logo 5" />
-            <img src="" alt="logo 6" />
+            <img src="/assets/sus-logo.png" alt="logo 1" />
+            <img src="/assets/hob-logo.png" alt="logo 2" />
+            <img src="/assets/carmed-logo.webp" alt="logo 3" />
+            <img src="/assets/sicredi-logo.png" alt="logo 4" />
+            <img src="/assets/sus-logo.png" alt="logo 1" />
+            <img src="/assets/hob-logo.png" alt="logo 2" />
+            <img src="/assets/carmed-logo.webp" alt="logo 3" />
+            <img src="/assets/sicredi-logo.png" alt="logo 4" />
           </div>
         </div>
       </div>
