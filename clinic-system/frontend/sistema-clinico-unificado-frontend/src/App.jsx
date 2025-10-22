@@ -5,6 +5,8 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import TelaLogin from "./pages/Login";
 import TelaCadastro from "./pages/Register";
+// Importar o novo componente
+import DashboardPaciente from "./pages/DashBoardPaciente"; 
 
 import "./styles/home.css";
 import "./styles/components.css";
@@ -20,6 +22,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<TelaLogin />} />
         <Route path="/register" element={<TelaCadastro />} />
+        {/* Rota para o Dashboard do Paciente */}
+        <Route path="/dashboard-paciente" element={<DashboardPaciente />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

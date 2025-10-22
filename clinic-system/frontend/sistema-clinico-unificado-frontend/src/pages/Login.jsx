@@ -1,12 +1,13 @@
 import { useState } from "react";
 import "../styles/login.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Importa useNavigate
 
 function TelaLogin() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [ok, setOk] = useState("");
+  const navigate = useNavigate(); // Inicializa o hook de navegação
 
   // Validador de CPF com dígitos verificadores
   const validarCPF = (valor) => {
@@ -23,7 +24,7 @@ function TelaLogin() {
     return d1 === parseInt(c.charAt(9)) && d2 === parseInt(c.charAt(10));
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => { // Tornada assíncrona
     e.preventDefault();
     setErro("");
     setOk("");
@@ -38,8 +39,48 @@ function TelaLogin() {
       return;
     }
 
-    // Aqui você pode adicionar a chamada de API futuramente
-    setOk("Login realizado com sucesso! (validação de CPF ok)");
+    // Preparar objeto para enviar ao back-end
+    const credentials = {
+      cpf: cpf.replace(/\D/g, ""), // Remove pontuação do CPF
+      password: senha,
+    };
+
+    try {
+      // 1. Chamada de API para Login
+      const response = await fetch("http://localhost:8080/api/pacients/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Credenciais inválidas ou erro no servidor.");
+      }
+
+      // Supondo que o back-end retorna um objeto com o tipo (role) do usuário
+      const userData = await response.json(); 
+      
+      // >>> SIMULAÇÃO DE VERIFICAÇÃO DO TIPO DE USUÁRIO
+      const userType = userData.role || "paciente"; // Assume 'paciente' se não vier do back-end
+      
+      if (userType !== 'paciente') {
+         // O back-end deve idealmente retornar 403 Forbidden para isso, mas
+         // aqui adicionamos uma verificação extra.
+         throw new Error("Acesso negado. Esta conta não é de paciente.");
+      }
+      
+      // 2. Login bem-sucedido
+      setOk("Login de paciente realizado com sucesso! Redirecionando...");
+      
+      // 3. Redirecionar para a Dashboard do Paciente
+      navigate("/dashboard-paciente"); 
+
+    } catch (err) {
+      // Login falhou
+      setErro(err.message);
+      setOk("");
+    }
   };
 
   return (
@@ -79,8 +120,9 @@ function TelaLogin() {
 
             <button type="submit">Entrar</button>
 
-            {erro && <p style={{ color: "red", marginTop: 8 }}>{erro}</p>}
-            {ok && <p style={{ color: "green", marginTop: 8 }}>{ok}</p>}
+            {/* Ajuste nos estilos inline para mensagens */}
+            {erro && <p style={{ color: "red", marginTop: '15px' }}>{erro}</p>}
+            {ok && <p style={{ color: "green", marginTop: '15px' }}>{ok}</p>}
 
             <div className="divider">or</div>
 
