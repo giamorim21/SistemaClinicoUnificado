@@ -7,11 +7,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "pacients")
-public class Pacient {
+public class Pacient extends User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     // (11) Nome completo - NOT NULL
     @NotBlank
@@ -60,9 +57,6 @@ public class Pacient {
     @Pattern(regexp = "\\d{10,11}")
     private String phone;
 
-    // (9) Email - NULL
-    @Email
-    private String email;
 
     // (14) Plano de saúde - NULL
     private String healthPlan;
@@ -91,19 +85,12 @@ public class Pacient {
     // (5) CNS - NULL
     private String cns;
 
-    // (25) Método de pagamento - RETIRAR
-    // private String preferredPaymentMethod;
-
     // (13) Nome do guardião legal - NULL
     private String guardianName;
 
     // (3) Alergias - NULL
     private String allergies;
 
-    // (18) Senha - NOT NULL
-    @NotBlank
-    @Column(nullable = false)
-    private String password;
 
     // (6) Consentimento - NOT NULL
     @NotNull
@@ -119,9 +106,6 @@ public class Pacient {
     // Getters e Setters
     // ==========================
 
-    public Long getId() { return id; }
-
-    public void setId(Long id) { this.id = id; }
 
     public String getFullName() { return fullName; }
 
@@ -163,10 +147,6 @@ public class Pacient {
 
     public void setPhone(String phone) { this.phone = phone; }
 
-    public String getEmail() { return email; }
-
-    public void setEmail(String email) { this.email = email; }
-
     public String getHealthPlan() { return healthPlan; }
 
     public void setHealthPlan(String healthPlan) { this.healthPlan = healthPlan; }
@@ -206,10 +186,6 @@ public class Pacient {
     public String getAllergies() { return allergies; }
 
     public void setAllergies(String allergies) { this.allergies = allergies; }
-
-    public String getPassword() { return password; }
-
-    public void setPassword(String password) { this.password = password; }
 
     public Boolean getConsent() { return consent; }
 

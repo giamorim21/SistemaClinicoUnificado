@@ -6,17 +6,17 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "receptionists")
-public class Receptionist {
+public class Receptionist extends User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    // REMOVIDO: private Long id; (Já herda de User)
+    // REMOVIDO: private String email; (Já herda de User)
 
     @NotBlank
     private String fullName;
 
     @NotBlank
     @Pattern(regexp = "\\d{11}", message = "CPF must have 11 numeric digits")
+    @Column(unique = true)
     private String cpf;
 
     @Past
@@ -27,23 +27,18 @@ public class Receptionist {
 
     private String address;
 
-    @Pattern(regexp = "\\d{10,11}", message = "Phone number must have 10 or 11 numeric digits")
+    @Pattern(regexp = "\\d{10,11}")
     private String phone;
 
-    @Email
-    private String email;
+    @NotBlank
+    private String registrationNumber; // Matricula
 
     @NotBlank
-    private String registrationNumber; // system registration/matricula
+    private String workShift; // Turno
 
-    @NotBlank
-    private String workShift; // morning, afternoon, night
+    private String permissions;
 
-    private String permissions; // e.g. "PATIENT_REGISTRATION, SCHEDULE, CHECKIN"
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Getters e Setters (Apenas dos campos novos)
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -62,9 +57,6 @@ public class Receptionist {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
 
     public String getRegistrationNumber() { return registrationNumber; }
     public void setRegistrationNumber(String registrationNumber) { this.registrationNumber = registrationNumber; }
