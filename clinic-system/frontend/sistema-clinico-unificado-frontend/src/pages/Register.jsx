@@ -9,9 +9,12 @@ function TelaCadastro() {
     const [cpf, setCpf] = useState("");
     const [genero, setGenero] = useState("");
     const [nacionalidade, setNacionalidade] = useState("");
+    const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
     const [consentimento, setConsentimento] = useState(false);
+    
+
 
     const [erro, setErro] = useState("");
     const [sucesso, setSucesso] = useState(false);
@@ -42,6 +45,18 @@ function TelaCadastro() {
         // Campos obrigatórios
         if (!nome || !dataNasc || !endereco || !cpf || !genero || !nacionalidade) {
             setErro("Preencha todos os campos obrigatórios.");
+            return;
+        }
+
+        // Email
+        if (!email) {
+            setErro("Informe um email válido.");
+            return;
+        }
+        const validarEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+        if (!validarEmail(email)) {
+            setErro("Formato de e-mail inválido.");
             return;
         }
 
@@ -89,6 +104,7 @@ function TelaCadastro() {
             address: endereco,
             cpf: cpf.replace(/\D/g, ""),
             nationality: nacionalidade,
+            email: email,
             password: senha,
             consent: consentimento,
             consentDate: new Date().toISOString().split("T")[0]
@@ -116,6 +132,7 @@ function TelaCadastro() {
             setCpf("");
             setGenero("");
             setNacionalidade("");
+            setEmail("");
             setSenha("");
             setConfirmarSenha("");
             setConsentimento(false);
@@ -161,6 +178,15 @@ function TelaCadastro() {
                                 required
                             />
 
+                            <label>E-mail</label>
+                            <input
+                                type="email"
+                                placeholder="seuemail@exemplo.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+             
                             <label>CPF</label>
                             <input
                                 type="text"
