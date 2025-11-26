@@ -1,6 +1,7 @@
 package com.scu.clinic_system.service;
 
 import com.scu.clinic_system.model.Pacient;
+import com.scu.clinic_system.model.Role;
 import com.scu.clinic_system.repository.PacientRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class PacientService {
@@ -22,6 +24,9 @@ public class PacientService {
     }
 
     public Pacient createPacient(Pacient pacient) {
+
+        // 🔒 Força a role de paciente (impede manipulação indevida via corpo JSON)
+        pacient.setRoles(Set.of(Role.ROLE_PATIENT));
 
         // Calcula idade a partir da data de nascimento
         if (pacient.getBirthDate() != null) {
@@ -100,20 +105,17 @@ public class PacientService {
     private boolean isValidCPF(String cpf) {
         if (cpf == null || !cpf.matches("\\d{11}")) return false;
 
-        // Checa se todos os dígitos são iguais
         if (cpf.chars().distinct().count() == 1) return false;
 
         try {
             int[] numbers = cpf.chars().map(c -> c - '0').toArray();
 
-            // Primeiro dígito verificador
             int sum = 0;
             for (int i = 0; i < 9; i++) sum += numbers[i] * (10 - i);
             int firstCheck = 11 - (sum % 11);
             if (firstCheck >= 10) firstCheck = 0;
             if (numbers[9] != firstCheck) return false;
 
-            // Segundo dígito verificador
             sum = 0;
             for (int i = 0; i < 10; i++) sum += numbers[i] * (11 - i);
             int secondCheck = 11 - (sum % 11);
