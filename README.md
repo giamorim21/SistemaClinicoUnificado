@@ -1,116 +1,143 @@
-# Sistema Clinico Unificado
+<div align="center">
+  <h1>🩺 Sistema Clínico Unificado (SCU)</h1>
+  <p>Uma plataforma digital unificada e moderna para otimizar jornadas de atendimento médico e gestão hospitalar.</p>
 
-![Status do Projeto](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+  [![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow.svg)]()
+  [![React](https://img.shields.io/badge/Frontend-React_19-blue.svg)]()
+  [![Spring Boot](https://img.shields.io/badge/Backend-Spring_Boot_3-brightgreen.svg)]()
+  [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue.svg)]()
+
+</div>
+
+---
 
 ## 📖 Sobre o Projeto
 
-O objetivo principal deste projeto é otimizar e agilizar a jornada de atendimento ao paciente, desde o contato inicial até a consulta médica. Para isso, estamos desenvolvendo uma plataforma digital unificada que centraliza as informações e melhora a eficiência dos processos clínicos e administrativos, sempre em conformidade com a LGPD.
+O **Sistema Clínico Unificado (SCU)** foi idealizado para transformar e agilizar a jornada de atendimento do paciente, além de fornecer ferramentas poderosas para a equipe médica e administrativa. O sistema cobre desde o primeiro contato do paciente (cadastro, triagem) até o encerramento da consulta médica.
 
-A solução é composta por dois sistemas principais:
-1.  **Portal do Paciente:** Uma aplicação front-end onde os pacientes podem se cadastrar, realizar uma triagem preliminar com um chatbot e acessar seu histórico de saúde.
-2.  **Plataforma Clínica Interna:** Um sistema de back-office para recepcionistas, enfermeiros, médicos e gestores hospitalares, otimizando o agendamento, triagem, atendimento e gestão.
+O projeto é dividido em duas frentes integradas:
+1. **Portal do Paciente:** Interface web focada na experiência do usuário para realização de cadastros e acompanhamento.
+2. **Plataforma Clínica Interna:** Sistema robusto de back-office feito para recepcionistas, médicos e gestores, com ferramentas de prontuário eletrônico (PEP), agenda diária, emissões de prescrições e gestão da clínica.
 
 ---
 
 ## ✨ Principais Funcionalidades
 
-### Para Pacientes
--   ✅ Autocadastro seguro de perfil.
--   🤖 Chatbot para triagem preliminar de sintomas e recomendação de especialistas.
--   🗂️ Acesso ao histórico completo de consultas, exames e prescrições.
+### 🧑‍⚕️ Para a Equipe Hospitalar (Médicos, Recepção e Gestão)
+- **Dashboard Médico Centralizado:** Visualize imediatamente as consultas agendadas para o dia e gerencie pacientes em andamento.
+- **Prontuário Eletrônico do Paciente (PEP):** Histórico completo com evolução clínica, diagnósticos e inserção padrão de condições médicas.
+- **Prescrições e Atestados Web:** Emissão digital de receitas médicas com envio facilitado, assim como geração de atestados e solicitações de exames.
+- **Controle de Autenticação Segura:** Autenticação forte garantindo que Médicos e Pacientes acessem apenas suas visões devidas, através de um sistema completo de herança de usuários.
 
-### Para a Equipe Hospitalar
--   📅 Gestão completa de agendamentos (marcar, remarcar, cancelar).
--   🚀 Check-in inteligente para pacientes novos e pré-cadastrados.
--   🩺 Registro digital de triagem hospitalar (sinais vitais).
--   📋 Prontuário Eletrônico do Paciente (PEP) unificado.
--   📊 Dashboard com indicadores de performance (KPIs) para gestores.
--   ⚙️ Módulo de administração para gestão de usuários e permissões.
+### � Para os Pacientes
+- **Cadastro Ágil e Descomplicado:** Portal intuitivo para inserção segura de dados pessoais.
+- **Acompanhamento Pessoal:** Telas customizadas para gerenciar seu contato com a clínica.
 
 ---
 
-## 💻 Tecnologias Utilizadas
+## �️ Tecnologias Utilizadas
 
-| Ferramenta | Descrição |
-| :--- | :--- |
-| **Front-end** | `React`, `Bootstrap` |
-| **Back-end** | `Python`, `FastAPI` |
-| **Banco de Dados** | `SQL Server` |
-| **Conteinerização** | `Docker` |
-| **Cloud & DevOps** | `Azure`, `Azure DevOps` |
-| **Segurança** | `JWT`, `OAuth 2.0` |
-| **Controle de Versão** | `Git` |
+A arquitetura foi pensada em alto desempenho, empregando ferramentas líderes de mercado.
+
+### Frontend
+- **Framework:** `React 19` (Single Page Application)
+- **Build Tool:** `Vite` (Ambiente ultrarrápido de desenvolvimento)
+- **Roteamento:** `React Router DOM v7`
+- **Estilização:** `CSS Puro` em união à suíte de classes do `Bootstrap 5` com `Bootstrap Icons`
+
+### Backend
+- **Linguagem & Framework:** `Java 17` operando através do robusto `Spring Boot 3.5.6`
+- **Arquitetura:** API RESTful com rígida separação em camadas (`Models` / `Repositories` / `Services` / `Controllers`).
+- **Persistência de Dados:** `Spring Data JPA` (utilizando o *Hibernate* por trás).
+- **Banco de Dados:** `PostgreSQL`
+- **Segurança:** `Spring Security` gerenciando acessos baseados em hierarquia de Papéis (Role-based Authorization) e autenticação estateless com Tokens `JWT` (via Auth0).
 
 ---
 
-## 🚀 Começando
+## 🚀 Como Executar o Projeto Localmente
 
-Siga estas instruções para configurar e executar o ambiente de desenvolvimento localmente.
+Para testar o software na sua máquina, deverá iniciar o Banco de Dados, o Servidor Backend (API) e o Servidor Frontend em terminais separados.
 
 ### Pré-requisitos
+- **Java 17** ou superior (JDK) instalado no sistema.
+- **Node.js** (Versão 18+) e gerenciador de pacotes `npm`.
+- Instância ativa do banco relacional **PostgreSQL**.
 
-Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
-* [Git](https://git-scm.com/)
-* [Docker](https://www.docker.com/products/docker-desktop/) e [Docker Compose](https://docs.docker.com/compose/install/)
-* [Node.js](https://nodejs.org/en/) (versão 18.x ou superior)
-* [Python](https://www.python.org/downloads/) (versão 3.10 ou superior)
+### Passo 1: Configurando e Rodando o Back-end
+O backend atua como o motor lógico da sua aplicação.
 
-### Instalação e Execução
+1. Abra um terminal.
+2. Navegue até o diretório do backend:
+   ```bash
+   cd clinic-system/backend
+   ```
+3. _*(Importante)*_ Verifique em `src/main/resources/application.properties` se as credenciais (username e password) do banco de dados combinam com a sua instalação local do PostgreSQL.
+4. Execute a aplicação usando o utilitário nativo do Maven. Ele resolverá downloads de todas as bibliotecas pendentes:
+   - **No Windows:**
+     ```cmd
+     mvnw.cmd spring-boot:run
+     ```
+   - **No Linux/Mac:**
+     ```bash
+     ./mvnw spring-boot:run
+     ```
+5. A API iniciará com sucesso na porta padrão: `http://localhost:8080`.
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://seu-repositorio-aqui.git](https://seu-repositorio-aqui.git)
-    cd nome-do-projeto
-    ```
+### Passo 2: Configurando e Rodando o Front-end
+Para iniciar as telas visuais do sistema.
 
-2.  **Configuração das Variáveis de Ambiente:**
-    Existem arquivos `.env.example` nos diretórios `frontend/` e `backend/`. Crie cópias desses arquivos e renomeie-as para `.env`, preenchendo as variáveis necessárias.
-
-    * **Backend (`backend/.env`):**
-        ```env
-        DATABASE_URL="sua_string_de_conexao_com_o_banco"
-        SECRET_KEY="sua_chave_secreta_para_jwt"
-        ALGORITHM="HS256"
-        ```
-
-    * **Frontend (`frontend/.env`):**
-        ```env
-        REACT_APP_API_BASE_URL="http://localhost:8000/api"
-        ```
-
-3.  **Execute o projeto com Docker Compose:**
-    Este é o método recomendado, pois ele irá construir e executar os contêineres do front-end, back-end e do banco de dados de forma integrada.
-
-    ```bash
-    docker-compose up --build
-    ```
-
-4.  **Acesse as aplicações:**
-    * 🖥️ **Aplicação Front-end (Portal do Paciente):** [http://localhost:3000](http://localhost:3000)
-    * 📄 **Documentação da API Back-end (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
-
----
-
-## 🏗️ Estrutura do Projeto
-
-.
-├── backend/         # Código da API em FastAPI (Python)
-│   ├── app/
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/        # Código da Aplicação em React
-│   ├── public/
-│   ├── src/
-│   └── Dockerfile
-├── docker-compose.yml
-└── README.md
-
+1. Abra um **novo terminal** diferente do primeiro.
+2. Acesse a pasta onde hospeda o React:
+   ```bash
+   cd clinic-system/frontend/sistema-clinico-unificado-frontend
+   ```
+3. Baixe e instale as árvores de pacotes do Javascript digitando:
+   ```bash
+   npm install
+   ```
+4. Suba o servidor reativo de desenvolvimento do Vite com:
+   ```bash
+   npm run dev
+   ```
+5. O sistema está no ar! Localize o endereço servido no terminal (provavelmente `http://localhost:5173`) e abra em seu navegador predileto.
 
 ---
 
-## 👥 Equipe
+## 📁 Estrutura Interna do Código-Fonte
 
-| Nome | Funções Principais |
+```text
+SistemaClinicoUnificado/
+│
+└── clinic-system/
+    ├── backend/
+    │   ├── src/main/java/com/scu/clinic_system/
+    │   │   ├── config/      # Configurações de CORS e do Spring Security
+    │   │   ├── controller/  # Interfaces expostas (Endpoints da API)
+    │   │   ├── model/       # Estruturas do Banco (User, Doctor, Pacient...)
+    │   │   ├── repository/  # Abstração de queries para o PostgreSQL
+    │   │   ├── security/    # Tratamentos do Token JWT (Auth0)
+    │   │   └── service/     # Core lógico das funcionalidades da clínica
+    │   └── pom.xml          # Dependências Maven
+    │
+    └── frontend/
+        └── sistema-clinico-unificado-frontend/
+            ├── src/
+            │   ├── components/  # Componentes reutilizáveis (Hero, Navbar, Footer...)
+            │   ├── pages/       # Telas inteiras (Dashboards, Logins)
+            │   ├── styles/      # Estilos CSS segmentados
+            │   ├── App.jsx      # Definidor central das Rotas de Navegação
+            │   └── main.jsx     # Boostrap da engine do React
+            ├── package.json     # Node Scripts
+            └── vite.config.js   # Otimizador do Frontend
+```
+
+---
+
+## 👥 Equipe de Desenvolvimento
+
+Solução idealizada e programada de ponta-a-ponta por:
+
+| Nome | Funções Recentes |
 | :--- | :--- |
 | **Georges Andraus** | Desenvolvedor Backend, Arquiteto de Software, DBA |
 | **Giovana Amorim Campos** | Scrum Master, Documentador Técnico, Analista de Requisitos |
@@ -120,6 +147,4 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
 
 ---
 
-## 📜 Licença
-
-Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+<p align="center">Desenvolvido com dedicação pela equipe SCU 🩵.</p>
