@@ -2,9 +2,7 @@
 ### Formato: Azure DevOps — Épico › Feature › Backlog Item › Task
 
 > **Última atualização:** Março/2026
-> Hierarquia: **Épico** (objetivo estratégico) › **Feature** (capacidade entregável) › **Backlog Item** (história de usuário) › **Task** (tarefa técnica)
-
----
+> Hierarquia: **Épico** › **Feature** › **Backlog Item** › **Task**
 
 ---
 
@@ -16,393 +14,489 @@
 
 ## 🔵 Feature 1.1 — Cadastro e Gestão de Profissionais de Saúde
 
-### 📗 Backlog Item 1.1.1
+### 📗 Backlog Item 1.1.1 — Backend: Estrutura de Cadastro Médico
 **Como** administrador do sistema,
-**Quero** cadastrar médicos com todas as informações do conselho e perfil profissional,
-**Para que** o sistema reconheça o profissional com suas habilitações corretas.
+**Quero** gerenciar as informações de médicos no servidor,
+**Para que** o cadastro e validações sejam feitos de forma segura e o sistema processe as habilitações corretamente.
 
-#### ✅ Tasks — Backend
-- [ ] Expandir model `Doctor` adicionando campos: `councilType` (CRM, CRO etc.), `councilState`, `councilNumber`, `professionalType`, `situation`, `specialty`, `rqe`, `academicBackground`, `languages`, `institutionalLinks`, `scheduleValidity`, `associatedPrograms`, `actingArea`, `returnRules`, `allowMultipleConsultations`, `doctorProfileEnabled`
-- [ ] Adicionar validações Bean Validation nos campos obrigatórios do `Doctor`
-- [ ] Implementar `DoctorService.createDoctor()` com validação de CRM único por estado
-- [ ] Implementar `DoctorService.updateDoctor()` para edição de perfil
-- [ ] Implementar `DoctorService.toggleStatus()` para ativar/desativar médico
-- [ ] Criar `DoctorController` com endpoints: `POST /api/doctors`, `GET /api/doctors/{id}`, `GET /api/doctors?specialty=`, `PUT /api/doctors/{id}`, `PATCH /api/doctors/{id}/status`
-- [ ] Proteger endpoints com roles `ROLE_ADMIN` e `ROLE_DOCTOR`
+#### ✅ Tasks
+- [ ] Atualizar estrutura de dados do Médico
+  - *Descrição técnica:* Expandir model `Doctor` adicionando campos complementares (councilType, councilState, specialty, etc).
+- [ ] Adicionar regras de obrigatoriedade
+  - *Descrição técnica:* Adicionar validações Bean Validation nos campos obrigatórios do `Doctor`.
+- [ ] Implementar operações de negócio para Médicos
+  - *Descrição técnica:* Implementar `DoctorService` para criação, atualização e ativação/desativação, incluindo validação de CRM único por estado.
+- [ ] Disponibilizar comunicação da API
+  - *Descrição técnica:* Criar `DoctorController` com endpoints (POST, GET, PUT, PATCH) e aplicar proteção `ROLE_ADMIN` e `ROLE_DOCTOR`.
 
-#### ✅ Tasks — Frontend
-- [ ] Criar formulário de cadastro de médico com todos os campos da documentação (dentro do módulo de administração)
-- [ ] Incluir campo de seleção de tipo de conselho (CRM, CRO, etc.) e estado
-- [ ] Implementar campo de especialidade e RQE
-- [ ] Adicionar seção de configurações: regras de retorno, múltiplas consultas, habilitação de perfil
-- [ ] Conectar formulário ao `POST /api/doctors`
+### 📗 Backlog Item 1.1.2 — Frontend: Tela de Cadastro Médico
+**Como** administrador do sistema,
+**Quero** uma interface para cadastrar médicos,
+**Para que** o sistema reconheça o profissional corretamente.
+
+#### ✅ Tasks
+- [ ] Construir tela de cadastro principal
+  - *Descrição técnica:* Criar formulário de cadastro com dados do médico, especialidade e conselho (dentro do módulo de administração).
+- [ ] Incluir configurações adicionais na tela
+  - *Descrição técnica:* Adicionar campos de regras de retorno, múltiplas consultas e habilitação de perfil.
+- [ ] Conectar tela ao servidor
+  - *Descrição técnica:* Integrar formulário enviando dados para a API `POST /api/doctors`.
 
 ---
 
 ## 🔵 Feature 1.2 — Agenda do Médico
 
-### 📗 Backlog Item 1.2.1
+### 📗 Backlog Item 1.2.1 — Backend: Mecanismo de Agendamentos
+**Como** sistema,
+**Quero** registrar agendamentos de consulta no banco,
+**Para que** os agendamentos fiquem salvos e consultáveis.
+
+#### ✅ Tasks
+- [ ] Criar estrutura de Consulta
+  - *Descrição técnica:* Criar entidade `Appointment` com campos de paciente, médico, data/hora, status e tipo.
+- [ ] Implementar lógica de busca e atualização
+  - *Descrição técnica:* Criar `AppointmentService` para gerenciar listagens por médico/paciente, agendamento e mudança de status.
+- [ ] Disponibilizar agendamento na API
+  - *Descrição técnica:* Criar `AppointmentController` para endpoints de GET e POST referentes à agenda.
+
+### 📗 Backlog Item 1.2.2 — Frontend: Painel da Agenda Médica
 **Como** médico,
 **Quero** visualizar minha agenda nos formatos dia, semana e mês,
 **Para que** eu possa acompanhar e gerenciar meus atendimentos.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `Appointment` com campos: `id`, `doctorId`, `pacientId`, `dateTime`, `status` (agendado, confirmado, realizado, cancelado), `type` (primeira consulta, retorno), `room`
-- [ ] Criar `AppointmentService` com métodos: `listByDoctor(doctorId, date, view)`, `listByPatient(patientId)`, `scheduleAppointment()`, `updateStatus()`
-- [ ] Criar `AppointmentController` com endpoints: `GET /api/appointments?doctorId=&date=&view=day|week|month`, `POST /api/appointments`, `PATCH /api/appointments/{id}/status`
-
-#### ✅ Tasks — Frontend
-- [ ] Integrar seção "Agenda" do `DashBoardMedico.jsx` com `GET /api/appointments`
-- [ ] Implementar navegação de datas (anterior/próximo) nas três visões (dia, semana, mês)
-- [ ] Substituir dados mockados por respostas reais da API
-- [ ] Exibir status de cada consulta (confirmada, em andamento, pendente)
+#### ✅ Tasks
+- [ ] Construir interface de agenda interativa
+  - *Descrição técnica:* Implementar navegação de visualização por dia, semana e mês no `DashBoardMedico.jsx`.
+- [ ] Integrar agenda com dados reais
+  - *Descrição técnica:* Substituir mocks pela comunicação com `GET /api/appointments`.
+- [ ] Exibir situação de cada consulta na interface
+  - *Descrição técnica:* Mostrar visualmente o status (confirmada, andamento, pendente) de modo claro para o médico.
 
 ---
 
 ## 🔵 Feature 1.3 — Prontuário Eletrônico do Paciente (PEP)
 
-### 📗 Backlog Item 1.3.1
+### 📗 Backlog Item 1.3.1 — Backend: Registro Clínico Eletrônico
+**Como** sistema,
+**Quero** processar dados do registro clínico,
+**Para que** fiquem salvos de forma estruturada.
+
+#### ✅ Tasks
+- [ ] Estruturar o Prontuário no banco de dados
+  - *Descrição técnica:* Criar entidade `MedicalRecord` com detalhes da consulta (queixa, exame, diagnóstico, conduta).
+- [ ] Criar serviços do Prontuário
+  - *Descrição técnica:* Implementar `MedicalRecordService` e seu Controller para criar e listar por paciente.
+- [ ] Preparar base de doenças (CID-10)
+  - *Descrição técnica:* Criar tabela e seed via Flyway para CID-10 e disponibilizar endpoint de busca textual.
+
+### 📗 Backlog Item 1.3.2 — Frontend: Preenchimento do Prontuário
 **Como** médico,
-**Quero** registrar consultas de forma estruturada (queixa, antecedentes, exame físico, diagnóstico, conduta),
-**Para que** o histórico clínico do paciente fique centralizado e acessível.
+**Quero** registrar a consulta do paciente de forma interativa,
+**Para que** o histórico fique unificado.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `MedicalRecord` com campos: `id`, `pacientId`, `doctorId`, `appointmentId`, `consultationDate`, `chiefComplaint`, `personalHistory`, `physicalExam`, `diagnosis` (CID-10), `therapeuticConduct`
-- [ ] Criar `MedicalRecordService` com métodos: `create()`, `getById()`, `listByPatient(patientId)`
-- [ ] Criar `MedicalRecordController` com endpoints: `POST /api/records`, `GET /api/records/{id}`, `GET /api/records/patient/{id}`
-- [ ] Criar tabela/migration de CID-10 e endpoint `GET /api/cid10?search=` para busca textual por código ou descrição
-- [ ] Popular base de dados de CID-10 via Flyway seed
-
-#### ✅ Tasks — Frontend
-- [ ] Adicionar campo de busca de paciente (por nome ou CPF) antes de abrir prontuário
-- [ ] Conectar histórico clínico ao `GET /api/records/patient/{id}`
-- [ ] Conectar formulário de "Registro da Consulta Atual" ao `POST /api/records`
-- [ ] Implementar autocomplete de CID-10 no campo de diagnóstico (`GET /api/cid10?search=`)
-- [ ] Exibir histórico de consultas anteriores em lista expansível
+#### ✅ Tasks
+- [ ] Adicionar busca rápida de pacientes
+  - *Descrição técnica:* Implementar campo de pesquisa por nome ou CPF antes de abrir o prontuário.
+- [ ] Criar interface do registro da consulta
+  - *Descrição técnica:* Construir formulário para nova consulta e conectar ao `POST /api/records`.
+- [ ] Adicionar recurso de busca de doenças
+  - *Descrição técnica:* Implementar autocomplete integrado ao endpoint do CID-10 no campo de diagnóstico.
+- [ ] Listar histórico do paciente
+  - *Descrição técnica:* Exibir consultas anteriores em formato de lista expansível puxando do `GET /api/records/patient/{id}`.
 
 ---
 
 ## 🔵 Feature 1.4 — Prescrição de Tratamentos e Medicamentos
 
-### 📗 Backlog Item 1.4.1
+### 📗 Backlog Item 1.4.1 — Backend: Armazenamento de Receitas
+**Como** sistema,
+**Quero** guardar os dados das receitas médicas,
+**Para que** a prescrição médica seja auditável.
+
+#### ✅ Tasks
+- [ ] Criar estrutura de dados da Receita
+  - *Descrição técnica:* Criar entidade `Prescription` com lista JSON de medicamentos, assinaturas e vínculos.
+- [ ] Disponibilizar serviços de Prescrição
+  - *Descrição técnica:* Criar `PrescriptionService` e `PrescriptionController` para gestão e listagem via API (`POST` e `GET`).
+
+### 📗 Backlog Item 1.4.2 — Frontend: Emissão de Receitas
 **Como** médico,
-**Quero** prescrever medicamentos e emitir receitas digitais,
-**Para que** o paciente receba a prescrição de forma segura e rastreável.
+**Quero** prescrever medicamentos,
+**Para que** o paciente receba sua receita.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `Prescription` com campos: `id`, `medicalRecordId`, `medications` (lista JSON), `issuedDate`, `doctorSignature`
-- [ ] Criar `PrescriptionService`: `create()`, `getById()`, `listByRecord()`
-- [ ] Criar `PrescriptionController`: `POST /api/prescriptions`, `GET /api/prescriptions/{id}`, `GET /api/prescriptions/record/{id}`
-
-#### ✅ Tasks — Frontend
-- [ ] Conectar formulário da seção "Prescrição e Receitas" ao `POST /api/prescriptions`
-- [ ] Implementar lista dinâmica de medicamentos (adicionar/remover)
-- [ ] Habilitar checkbox de envio de receita digital (e-mail/SMS)
-- [ ] Implementar geração de receita em PDF para download
+#### ✅ Tasks
+- [ ] Construir tela de prescrição
+  - *Descrição técnica:* Implementar lista dinâmica de medicamentos onde o médico adiciona ou remove itens.
+- [ ] Integrar prescrição ao sistema
+  - *Descrição técnica:* Conectar o formulário à chamada `POST /api/prescriptions`.
+- [ ] Oferecer envio e exportação da receita
+  - *Descrição técnica:* Adicionar funcionalidade para gerar PDF e opção (checkbox) para envio digital (e-mail/SMS).
 
 ---
 
 ## 🔵 Feature 1.5 — Emissão de Atestados
 
-### 📗 Backlog Item 1.5.1
+### 📗 Backlog Item 1.5.1 — Backend: Registros de Atestado
+**Como** sistema,
+**Quero** salvar as informações dos atestados,
+**Para que** haja um registro oficial.
+
+#### ✅ Tasks
+- [ ] Estruturar dados do Atestado
+  - *Descrição técnica:* Criar entidade `MedicalCertificate` identificando o tipo (presença, acompanhamento), dias de afastamento e CID-10.
+- [ ] Implementar serviços de Atestado na API
+  - *Descrição técnica:* Criar `CertificateService` e Controller (`POST` e `GET`) para processar criações e buscas.
+
+### 📗 Backlog Item 1.5.2 — Frontend: Gerador de Atestados
 **Como** médico,
-**Quero** emitir atestados (presença, justificativa e acompanhamento),
-**Para que** o paciente tenha documentação oficial do atendimento.
+**Quero** emitir atestados variados,
+**Para que** o paciente tenha a documentação.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `MedicalCertificate`: `id`, `medicalRecordId`, `type` (enum: PRESENCE, JUSTIFICATION, ACCOMPANIMENT), `daysOff`, `cid10`, `observations`, `issuedDate`
-- [ ] Criar `CertificateService`: `create()`, `getById()`
-- [ ] Criar `CertificateController`: `POST /api/certificates`, `GET /api/certificates/{id}`
-
-#### ✅ Tasks — Frontend
-- [ ] Conectar formulário de atestado ao `POST /api/certificates`
-- [ ] Implementar autocomplete de CID-10 no campo do atestado
-- [ ] Habilitar geração de atestado em PDF
+#### ✅ Tasks
+- [ ] Criar tela para emissão de atestado
+  - *Descrição técnica:* Conectar formulário com `POST /api/certificates` e incluir campo autocomplete de CID-10.
+- [ ] Permitir a impressão do atestado
+  - *Descrição técnica:* Implementar funcionalidade de gerar PDF do atestado formatado.
 
 ---
 
 ## 🔵 Feature 1.6 — Solicitação de Exames e Encaminhamentos
 
-### 📗 Backlog Item 1.6.1
+### 📗 Backlog Item 1.6.1 — Backend: Base de Pedidos Médicos
+**Como** sistema,
+**Quero** rastrear os pedidos de exames e especialistas,
+**Para que** fique registrado no prontuário.
+
+#### ✅ Tasks
+- [ ] Criar estrutura para Solicitações Médicas
+  - *Descrição técnica:* Criar entidade `ExamRequest` para exames (laboratório, imagem) e encaminhamentos com justificativa.
+- [ ] Implementar rotas para as Solicitações
+  - *Descrição técnica:* Criar service e controller (`POST` e `GET`) para salvar e consultar por paciente via API.
+
+### 📗 Backlog Item 1.6.2 — Frontend: Ponto de Solicitações Clínicas
 **Como** médico,
-**Quero** solicitar exames e encaminhamentos para especialistas integrado ao CID-10,
-**Para que** o fluxo de cuidado do paciente seja contínuo e documentado.
+**Quero** solicitar exames e especialistas de forma simples,
+**Para que** o fluxo do cuidado ocorra corretamente.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `ExamRequest`: `id`, `medicalRecordId`, `requestType` (enum: LAB, IMAGE, REFERRAL), `description`, `cid10`, `clinicalJustification`, `requestDate`
-- [ ] Criar `ExamRequestService`: `create()`, `listByPatient()`
-- [ ] Criar `ExamRequestController`: `POST /api/exam-requests`, `GET /api/exam-requests/patient/{id}`
-
-#### ✅ Tasks — Frontend
-- [ ] Conectar formulário da seção "Exames e Encaminhamentos" ao `POST /api/exam-requests`
-- [ ] Implementar seleção de tipo de solicitação (Laboratorial, Imagem, Encaminhamento)
-- [ ] Integrar busca de exames/especialidades com CID-10
+#### ✅ Tasks
+- [ ] Construir tela comum de Solicitações
+  - *Descrição técnica:* Implementar seleção intuitiva de tipo (Laboratório, Imagem, Encaminhamento).
+- [ ] Integrar preenchimento da Solicitação
+  - *Descrição técnica:* Conectar busca de exames à API e salvar tudo via `POST /api/exam-requests`.
 
 ---
 
 ## 🔵 Feature 1.7 — Retornos e Relatórios Médicos
 
-### 📗 Backlog Item 1.7.1
+### 📗 Backlog Item 1.7.1 — Backend: Registro de Relatórios e Retornos
+**Como** sistema,
+**Quero** guardar agendamentos de retorno e relatórios escritos,
+**Para que** sejam resgatados nas próximas consultas.
+
+#### ✅ Tasks
+- [ ] Estruturar dados de Retorno e Relatório
+  - *Descrição técnica:* Criar entidades `ReturnRequest` e `MedicalReport` vinculadas ao Prontuário.
+- [ ] Fornecer serviços via API
+  - *Descrição técnica:* Criar endpoints POST e GET para lidar com retornos e relatórios.
+
+### 📗 Backlog Item 1.7.2 — Frontend: Agendamento de Retornos
 **Como** médico,
-**Quero** registrar solicitações de retorno e relatórios médicos,
-**Para que** haja continuidade e rastreabilidade no acompanhamento do paciente.
+**Quero** agendar retornos e registrar relatórios detalhados,
+**Para que** eu acompanhe a evolução do paciente.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `ReturnRequest`: `id`, `medicalRecordId`, `scheduledDate`, `reason`
-- [ ] Criar entidade `MedicalReport`: `id`, `medicalRecordId`, `content`, `issuedDate`
-- [ ] Criar endpoints: `POST /api/returns`, `POST /api/reports`, `GET /api/returns/patient/{id}`
-
-#### ✅ Tasks — Frontend
-- [ ] Implementar seção "Retornos e Relatórios" com formulário conectado à API
-- [ ] Listar retornos agendados do paciente
-- [ ] Permitir criação e visualização de relatório médico
+#### ✅ Tasks
+- [ ] Criar interface para Retornos e Relatórios
+  - *Descrição técnica:* Implementar seções separadas para agendar retorno e escrever relatório textual conectados à API.
+- [ ] Exibir previsão de retornos
+  - *Descrição técnica:* Listar no prontuário todos os retornos já agendados com o paciente.
 
 ---
 
 ## 🔵 Feature 1.8 — Integração e Qualidade do Dashboard Médico
 
-### 📗 Backlog Item 1.8.1
+### 📗 Backlog Item 1.8.1 — Frontend: Visão Geral e Indicadores
 **Como** médico,
-**Quero** que o dashboard exiba dados reais e meu perfil logado,
-**Para que** eu possa trabalhar com informações atualizadas sem dados fictícios.
+**Quero** ter um painel com informações atualizadas,
+**Para que** eu confie nos dados exibidos.
 
-#### ✅ Tasks — Frontend
-- [ ] Substituir cards do Overview (consultas, pacientes) por dados reais via API
-- [ ] Substituir placeholder do gráfico de atendimentos semanais por componente Recharts integrado à API
-- [ ] Exibir nome e CRM do médico logado no header (via token JWT / `GET /api/doctors/me`)
-- [ ] Configurar serviço centralizado `api.js` com Axios e interceptor de autenticação JWT
-- [ ] Implementar `PrivateRoute` para proteger acesso ao dashboard
-
----
+#### ✅ Tasks
+- [ ] Visualizar métricas reais no Dashboard
+  - *Descrição técnica:* Substituir os dados estáticos do Overview (pacientes, consultas) pelos dados reais consumidos da API.
+- [ ] Atualizar gráficos de atendimento
+  - *Descrição técnica:* Substituir gráfico estático por biblioteca (ex: Recharts) integrada com os endpoints da API.
+- [ ] Mostrar perfil do usuário logado
+  - *Descrição técnica:* Obter informações via token JWT ou `GET /api/doctors/me` para exibir no cabeçalho.
+- [ ] Configurar interceptador da API
+  - *Descrição técnica:* Configurar serviço centralizado `api.js` (axios) com interceptor de autenticação JWT.
+- [ ] Proteger o acesso do Dashboard
+  - *Descrição técnica:* Adicionar rota segura (`PrivateRoute`) que bloqueia acessos não autorizados.
 
 ---
 
 # 🟣 ÉPICO 2 — Módulo de Administração
 
-> **Objetivo:** Fornecer ao administrador as ferramentas para configurar e manter o sistema, gerenciando usuários, permissões, clínicas, especialidades e parâmetros globais.
+> **Objetivo:** Fornecer ao administrador ferramentas para gerir acessos e monitorar parâmetros globais do sistema.
 
 ---
 
 ## 🔵 Feature 2.1 — Cadastro e Gestão de Usuários
 
-### 📗 Backlog Item 2.1.1
+### 📗 Backlog Item 2.1.1 — Backend: Base Central de Usuários
+**Como** sistema,
+**Quero** centralizar o registro de usuários na base,
+**Para que** o controle de acesso seja seguro.
+
+#### ✅ Tasks
+- [ ] Aprimorar dados de Administradores
+  - *Descrição técnica:* Expandir `Admin` adicionando campos novos (fullName, cpf, position, phone).
+- [ ] Implementar serviços de controle de perfis
+  - *Descrição técnica:* Criar `AdminService` que crie perfis de qualquer tipo, ative/desative e liste com lógica avançada.
+- [ ] Criar controle restrito para Usuários
+  - *Descrição técnica:* Criar `AdminController` para gestão de usuários, obrigando a role `ROLE_ADMIN` em todos os endpoints (`POST`, `GET`, `PUT`, `PATCH`).
+
+### 📗 Backlog Item 2.1.2 — Frontend: Painel de Controle de Contas
 **Como** administrador,
-**Quero** criar, editar e desativar contas de usuários (médicos, recepcionistas e admins),
-**Para que** o acesso ao sistema seja controlado e auditável.
+**Quero** um painel para adicionar e editar usuários da equipe,
+**Para que** eu gerencie as contas do sistema e controle quem tem acesso.
 
-#### ✅ Tasks — Backend
-- [ ] Expandir model `Admin` adicionando campos: `fullName`, `cpf`, `position` (cargo), `phone`, `advancedPermissions`
-- [ ] Implementar `AdminService.createUser()` para criação de qualquer perfil (médico, recepcionista, admin)
-- [ ] Implementar `AdminService.updateUser()`, `deactivateUser()`, `listAllUsers()`
-- [ ] Criar `AdminController` com endpoints: `POST /api/admin/users`, `GET /api/admin/users`, `PUT /api/admin/users/{id}`, `PATCH /api/admin/users/{id}/status`
-- [ ] Proteger todos os endpoints com `ROLE_ADMIN`
-
-#### ✅ Tasks — Frontend
-- [ ] Criar página `DashboardAdmin.jsx` com sidebar de navegação
-- [ ] Criar tela de listagem de usuários com filtro por tipo (médico, recepcionista, admin)
-- [ ] Criar modal/formulário de criação de usuário com campos: nome, CPF, cargo, e-mail, telefone, login
-- [ ] Criar formulário de edição de usuário
-- [ ] Implementar botão de ativar/desativar conta com confirmação
-- [ ] Conectar todas as ações aos endpoints do `AdminController`
+#### ✅ Tasks
+- [ ] Estruturar Painel Administrativo
+  - *Descrição técnica:* Criar componente base `DashboardAdmin.jsx` com menu lateral de navegação.
+- [ ] Construir tela de listagem e filtro
+  - *Descrição técnica:* Mostrar todos os usuários com capacidade de filtrar por tipo (médico, recepcionista, etc).
+- [ ] Desenvolver fluxos de criação e edição
+  - *Descrição técnica:* Criar modais e formulários com os dados de usuários conectando aos endpoints do `AdminController`.
+- [ ] Adicionar funcionalidade de ativação de conta
+  - *Descrição técnica:* Incluir botão interativo para ativar/desativar conta do usuário com confirmação na tela.
 
 ---
 
 ## 🔵 Feature 2.2 — Controle de Acessos e Permissões por Perfil
 
-### 📗 Backlog Item 2.2.1
+### 📗 Backlog Item 2.2.1 — Backend: Regras de Autorização
+**Como** sistema,
+**Quero** organizar perfis rigorosamente,
+**Para que** as validações de API bloqueiem acesso indevido por perfil de usuário.
+
+#### ✅ Tasks
+- [ ] Organizar grupos de permissões
+  - *Descrição técnica:* Revisar e mapear a listagem de `Role` (ADMIN, DOCTOR, PATIENT, RECEPTIONIST).
+- [ ] Oferecer rotas para gerenciar acessos
+  - *Descrição técnica:* Criar endpoints `GET` e `PUT` em `/api/admin/users/{id}/permissions` para consultar e atualizar papéis.
+- [ ] Aplicar restrições nas rotas globais
+  - *Descrição técnica:* Ajustar `SecurityConfig` aplicando restrições corretas baseadas nos roles em toda a aplicação.
+
+### 📗 Backlog Item 2.2.2 — Frontend: Interface de Permissões
 **Como** administrador,
-**Quero** gerenciar as permissões de cada perfil de usuário,
-**Para que** cada profissional acesse apenas as funcionalidades adequadas ao seu papel.
+**Quero** gerenciar visualmente os acessos e permissões por usuário,
+**Para que** seja intuitivo dar ou remover funcionalidades adequadas.
 
-#### ✅ Tasks — Backend
-- [ ] Revisar e mapear os `Role` existentes (ROLE_ADMIN, ROLE_DOCTOR, ROLE_PATIENT, ROLE_RECEPTIONIST)
-- [ ] Criar endpoint `GET /api/admin/users/{id}/permissions` para consultar permissões
-- [ ] Criar endpoint `PUT /api/admin/users/{id}/permissions` para atualizar permissões
-- [ ] Garantir que `SecurityConfig` aplica restrições corretas por role em todos os endpoints
-
-#### ✅ Tasks — Frontend
-- [ ] Criar tela de gerenciamento de permissões por usuário
-- [ ] Exibir lista de permissões disponíveis com checkboxes
-- [ ] Conectar ao `GET` e `PUT /api/admin/users/{id}/permissions`
+#### ✅ Tasks
+- [ ] Construir tela para permissões interativas
+  - *Descrição técnica:* Criar tela exibindo uma lista clara de permissões de acesso com checkboxes.
+- [ ] Salvar alterações de permissões
+  - *Descrição técnica:* Conectar as caixas de seleção ao request de `GET` e `PUT` da API `/api/admin/users/{id}/permissions`.
 
 ---
 
 ## 🔵 Feature 2.3 — Configurações Gerais do Sistema
 
-### 📗 Backlog Item 2.3.1
+### 📗 Backlog Item 2.3.1 — Backend: Parâmetros Globais
+**Como** sistema,
+**Quero** hospedar informações globais,
+**Para que** todas as aplicações usem os mesmos parâmetros operacionais.
+
+#### ✅ Tasks
+- [ ] Fornecer rotas para clínicas
+  - *Descrição técnica:* Disponibilizar GET, POST e PUT para gestão de localidades hospitalares/clínicas.
+- [ ] Fornecer rotas para especialidades e parâmetros
+  - *Descrição técnica:* Criar endpoints para listar e editar profissionais/especialidades e configurações administrativas globais do sistema (`settings`).
+
+### 📗 Backlog Item 2.3.2 — Frontend: Configurações de Clínicas e Especialidades
 **Como** administrador,
-**Quero** configurar clínicas, hospitais, especialidades e parâmetros do sistema,
-**Para que** o sistema reflita a realidade operacional da instituição.
+**Quero** cadastrar as filiais e especialidades disponíveis,
+**Para que** essas opções reflitam na realidade operacional da instituição.
 
-#### ✅ Tasks — Backend
-- [ ] Criar endpoints para gestão de clínicas: `POST /api/admin/clinics`, `GET /api/admin/clinics`, `PUT /api/admin/clinics/{id}`
-- [ ] Criar endpoint para gestão de especialidades: `GET /api/admin/specialties`, `POST /api/admin/specialties`
-- [ ] Criar endpoint para parâmetros globais do sistema: `GET /api/admin/settings`, `PUT /api/admin/settings`
-
-#### ✅ Tasks — Frontend
-- [ ] Criar tela de configuração de clínicas/hospitais com formulário de cadastro e listagem
-- [ ] Criar tela de gerenciamento de especialidades disponíveis no sistema
-- [ ] Criar tela de parâmetros gerais do sistema
+#### ✅ Tasks
+- [ ] Criar gestão de Clínicas
+  - *Descrição técnica:* Desenvolver tela e formulário de cadastro de clínicas e hospitais conectado à API.
+- [ ] Criar gestão de Especialidades e Parâmetros
+  - *Descrição técnica:* Criar telas de configuração de especialidades médicas e de parâmetros gerais da instituição usando a API.
 
 ---
 
 ## 🔵 Feature 2.4 — Segurança e Infraestrutura
 
-### 📗 Backlog Item 2.4.1
-**Como** administrador de sistema,
-**Quero** que o sistema tenha controles de segurança e rastreabilidade robustos,
-**Para que** dados sensíveis de pacientes e médicos sejam protegidos adequadamente.
+### 📗 Backlog Item 2.4.1 — Backend: Defesa e Documentação de API
+**Como** DevOps / administrador de sistema,
+**Quero** aplicar padrões modernos de segurança,
+**Para que** dados sensíveis de pacientes fiquem protegidos de ataques externos.
 
-#### ✅ Tasks — Backend
-- [ ] Implementar Refresh Token e Blacklist de JWT (tabela `token_blacklist` ou Redis)
-- [ ] Adicionar Rate Limiting no endpoint `/api/auth/login` (ex: Bucket4j — máx. 5 tentativas/min)
-- [ ] Mover credenciais do `application.properties` para variáveis de ambiente (`.env` ou AWS Secrets Manager)
-- [ ] Implementar Audit Logging com `@EntityListeners` para tabelas sensíveis (`MedicalRecord`, `Prescription`)
-- [ ] Substituir `ddl-auto=update` por Flyway Migrations versionadas
-- [ ] Integrar `springdoc-openapi` para gerar Swagger UI com todos os endpoints documentados
-- [ ] Criar `Dockerfile` para backend e `docker-compose.yml` orquestrando backend + frontend + banco
-
----
+#### ✅ Tasks
+- [ ] Garantir expiração segura de acessos
+  - *Descrição técnica:* Implementar Refresh Token e Blacklist de JWT (ex: tabela `token_blacklist` ou Redis).
+- [ ] Proteger o sistema contra robôs de acesso
+  - *Descrição técnica:* Adicionar Rate Limiting na rota de login (ex: Bucket4j limitando falhas e repetições).
+- [ ] Isolar senhas do código-fonte
+  - *Descrição técnica:* Remover credenciais visíveis do `application.properties` para variáveis de ambiente.
+- [ ] Rastrear acessos e criar auditoria em banco de dados
+  - *Descrição técnica:* Usar `@EntityListeners` para log de dados sensíveis e migrar DDL-Auto para scripts de migração do Flyway.
+- [ ] Documentar API e usar conteinerização
+  - *Descrição técnica:* Habilitar geração do Swagger UI (`springdoc-openapi`) e configurar `Dockerfile` junto ao `docker-compose.yml`.
 
 ---
 
 # 🟣 ÉPICO 3 — Sistema Voltado para o Paciente (Front-end / Portal)
 
-> **Objetivo:** Oferecer ao paciente uma interface digital de primeiro contato com o serviço de saúde, incluindo autocadastro, acesso ao perfil, histórico, consultas agendadas e chatbot de triagem preliminar.
+> **Objetivo:** Oferecer interface digital ao paciente para suporte, autocadastro, acompanhamento e triagem inicial.
 
 ---
 
 ## 🔵 Feature 3.1 — Autocadastro e Autenticação do Paciente
 
-### 📗 Backlog Item 3.1.1
+### 📗 Backlog Item 3.1.1 — Backend: Recepção de Novos Pacientes
+**Como** sistema,
+**Quero** receber e validar novos pacientes no banco,
+**Para que** o perfil do paciente seja criado com segurança.
+
+#### ✅ Tasks
+- [ ] Liberar rota de criação de pacientes
+  - *Descrição técnica:* Configurar `POST /api/pacients` como rota pública livre de restrições.
+- [ ] Validar campos recebidos
+  - *Descrição técnica:* Validar campo de cobrança `paymentMethod` e remover campos antigos (como `occupation` do modelo).
+- [ ] Garantir recebimento completo dos dados
+  - *Descrição técnica:* Garantir que a entidade receba e lide com dados variados do convênio (healthPlan, planHolder) e dados familiares complementares.
+- [ ] Autenticar paciente corretamente
+  - *Descrição técnica:* Garantir que a `POST /api/auth/login` retorne adequadamente o perfil JWT `ROLE_PATIENT`.
+
+### 📗 Backlog Item 3.1.2 — Frontend: Portal de Acesso do Paciente
 **Como** paciente,
-**Quero** realizar meu autocadastro com dados pessoais, de convênio e de saúde,
-**Para que** eu possa acessar o sistema e ter um prontuário pré-gerado.
+**Quero** realizar meu autocadastro de forma parcelada ou acessar o meu portal,
+**Para que** minha ativação seja amigável.
 
-#### ✅ Tasks — Backend
-- [ ] Garantir que `POST /api/pacients` seja público (sem autenticação)
-- [ ] Validar campo `paymentMethod` (meio de pagamento preferencial) — adicionar ao model se ausente
-- [ ] Validar campo `occupation` está removido do model (já comentado ✅ — confirmar e limpar)
-- [ ] Garantir campos de convênio: `healthPlan`, `planNumber`, `planValidity`, `planHolder` (titular/dependente)
-- [ ] Garantir campos complementares: `cns`, `bloodType`, `guardianName`, `allergies`, `fatherName`, `motherName`
-- [ ] Retornar JWT no `POST /api/auth/login` com redirect correto por role (ROLE_PATIENT → dashboard do paciente)
-
-#### ✅ Tasks — Frontend
-- [ ] Expandir `Register.jsx` em formulário multi-etapa (stepper com 3 passos):
-  - **Passo 1 – Dados Pessoais:** nome completo, data de nascimento, sexo, foto, CPF, identidade, nacionalidade, endereço, telefone, celular, e-mail
-  - **Passo 2 – Convênio:** plano de saúde, número da carteirinha, validade, titularidade (titular/dependente)
-  - **Passo 3 – Dados Complementares:** nome dos pais, tipo sanguíneo, CNS, meio de pagamento, nome do responsável, alergias
-- [ ] Adicionar validação de CPF em tempo real no frontend
-- [ ] Implementar upload de foto de perfil
-- [ ] Conectar formulário ao `POST /api/pacients`
-- [ ] Exibir feedback de sucesso e redirecionar ao login após cadastro
-
-### 📗 Backlog Item 3.1.2
-**Como** paciente já cadastrado,
-**Quero** fazer login de forma segura e acessar meu perfil,
-**Para que** eu possa gerenciar meus dados e visualizar minhas informações de saúde.
-
-#### ✅ Tasks — Backend
-- [ ] Garantir que `POST /api/auth/login` retorna role no payload JWT
-- [ ] Criar endpoint `GET /api/pacients/me` (autenticado) que retorna dados do paciente logado
-
-#### ✅ Tasks — Frontend
-- [ ] Conectar `Login.jsx` ao `POST /api/auth/login`
-- [ ] Armazenar JWT no `localStorage` ou `sessionStorage`
-- [ ] Implementar redirecionamento por role após login (médico → DashBoardMedico, paciente → DashBoardPaciente)
-- [ ] Criar `PrivateRoute` para proteger rotas autenticadas
+#### ✅ Tasks
+- [ ] Construir o formulário de etapas do Cadastro
+  - *Descrição técnica:* Em `Register.jsx`, implementar um "stepper" em três passos: Dados Pessoais -> Convênio -> Dados Complementares.
+- [ ] Adicionar recursos do formulário
+  - *Descrição técnica:* Implementar validação de CPF no momento que o paciente digita e a capacidade de anexar foto para enviar para a API.
+- [ ] Conectar acesso principal
+  - *Descrição técnica:* Em `Login.jsx` realizar o envio para o login via `POST /api/auth/login`, armazenando o token recebido no `localStorage`.
+- [ ] Criar lógica de redirecionamento de tela
+  - *Descrição técnica:* Preparar `PrivateRoute` para redirecionar corretamente o médico para a tela X ou paciente para a sua tela final baseando-se no que a API respondeu.
 
 ---
 
 ## 🔵 Feature 3.2 — Perfil do Paciente (Visualização e Edição)
 
-### 📗 Backlog Item 3.2.1
+### 📗 Backlog Item 3.2.1 — Backend: Controle de Alterações
+**Como** sistema,
+**Quero** validar edições de dados feitas pelo paciente,
+**Para que** informações imutáveis do registro não sejam alteradas indevidamente.
+
+#### ✅ Tasks
+- [ ] Criar endpoint atualizado do perfil
+  - *Descrição técnica:* Implementar endpoint extraível pelo JWT do próprio usuário via `PUT /api/pacients/me` e `GET`.
+- [ ] Proteger as restrições sensíveis
+  - *Descrição técnica:* Bloquear logicamente para que campos de forte validação (como CPF) sejam impedidos de serem alterados, sendo limitados a admin.
+
+### 📗 Backlog Item 3.2.2 — Frontend: Edição de Perfil
 **Como** paciente,
-**Quero** visualizar e editar meus dados cadastrais,
-**Para que** minhas informações estejam sempre atualizadas no sistema.
+**Quero** visualizar todos os meus dados agrupados e modificá-los de modo prático,
+**Para que** minha documentação refletindo convênios e informações esteja em dia.
 
-#### ✅ Tasks — Backend
-- [ ] Criar endpoint `PUT /api/pacients/me` para atualização dos dados do paciente logado
-- [ ] Restringir edição de campos sensíveis (CPF, identidade) apenas por admin
-
-#### ✅ Tasks — Frontend
-- [ ] Construir layout base do `DashBoardPaciente.jsx` com sidebar e header com nome/foto do paciente
-- [ ] Criar seção "Meu Perfil" exibindo todos os dados cadastrais organizados em abas (Pessoais, Convênio, Saúde)
-- [ ] Implementar formulário de edição inline dos campos editáveis
-- [ ] Conectar ao `GET /api/pacients/me` e `PUT /api/pacients/me`
+#### ✅ Tasks
+- [ ] Criar estrutura base do painel do paciente
+  - *Descrição técnica:* Montar o design principal em `DashBoardPaciente.jsx` contendo barra lateral, topo e área de informações através de abas.
+- [ ] Permitir a edição em blocos de dados
+  - *Descrição técnica:* Habilitar pequenos formulários para alterar as restrições permitidas consumindo `PUT /api/pacients/me`.
 
 ---
 
 ## 🔵 Feature 3.3 — Histórico de Consultas e Exames
 
-### 📗 Backlog Item 3.3.1
+### 📗 Backlog Item 3.3.1 — Backend: Compilação de Histórico
+**Como** sistema,
+**Quero** agrupar toda a jornada retrospectiva do paciente,
+**Para que** ele extraia os registros simplificadamente.
+
+#### ✅ Tasks
+- [ ] Disponibilizar Histórico unificado do paciente
+  - *Descrição técnica:* Expor uma rota resumida do usuário, `GET /api/pacients/me/records` concatenando exames e relatórios por data de prontuário.
+
+### 📗 Backlog Item 3.3.2 — Frontend: Linha do Tempo Médica
 **Como** paciente,
-**Quero** visualizar o histórico completo das minhas consultas e exames com todos os detalhes,
-**Para que** eu tenha controle sobre meu histórico de saúde.
+**Quero** listar as minhas consultas anteriores obtendo os dados e prescrições emitidas,
+**Para que** eu consiga verificar meu tratamento.
 
-#### ✅ Tasks — Backend
-- [ ] Criar endpoint `GET /api/pacients/me/records` retornando lista de consultas com: data, local, médico, horário, relatórios, prescrições e exames vinculados
-
-#### ✅ Tasks — Frontend
-- [ ] Criar seção "Histórico" no `DashBoardPaciente.jsx`
-- [ ] Listar consultas passadas em cards com data, médico, local e tipo
-- [ ] Permitir expansão de cada consulta para ver: relatório, prescrição emitida, exames solicitados
-- [ ] Conectar ao `GET /api/pacients/me/records`
+#### ✅ Tasks
+- [ ] Apresentar interface cronológica
+  - *Descrição técnica:* Renderizar um container de lista no modelo de expansão, interligando a visualização e conexão em requisições feitas na API.
+- [ ] Permitir abertura de todos arquivos anexos
+  - *Descrição técnica:* Ligar opções pra mostrar de forma visual o texto da receita, e exames vinculados à consulta na parte inferior do cartão clicável.
 
 ---
 
 ## 🔵 Feature 3.4 — Visualização de Consultas Agendadas com Mapa
 
-### 📗 Backlog Item 3.4.1
+### 📗 Backlog Item 3.4.1 — Backend: Endereçamento de Agendamentos
+**Como** sistema,
+**Quero** buscar dados diretos de horários com endereçamento real,
+**Para que** a interface gráfica mostre as referências de clínica com eficiência.
+
+#### ✅ Tasks
+- [ ] Configurar lista de rotas de agendamentos futuros
+  - *Descrição técnica:* Providenciar um request que retorna arrays via `GET /api/pacients/me/appointments` exibindo nome e endereço concatenado da clínica.
+
+### 📗 Backlog Item 3.4.2 — Frontend: Mapa e Localização
 **Como** paciente,
-**Quero** visualizar minhas consultas agendadas com integração a mapas,
-**Para que** eu saiba onde e quando comparecer.
+**Quero** visualizar com mapas as futuras consultas,
+**Para que** eu calcule o percurso e me organize perfeitamente.
 
-#### ✅ Tasks — Backend
-- [ ] Criar endpoint `GET /api/pacients/me/appointments` retornando consultas futuras com: data, horário, médico, clínica/hospital e endereço completo
-
-#### ✅ Tasks — Frontend
-- [ ] Criar seção "Consultas Agendadas" no `DashBoardPaciente.jsx`
-- [ ] Listar consultas futuras ordenadas por data com médico, local e horário
-- [ ] Integrar mapa (Google Maps API ou Leaflet) para exibir a localização da clínica
-- [ ] Conectar ao `GET /api/pacients/me/appointments`
+#### ✅ Tasks
+- [ ] Exibir o lembrete de agendamentos em cartões
+  - *Descrição técnica:* Adicionar seção trazendo e priorizando da API em ordem crescente listagens de horários para a pessoa, com a data e nome do médico.
+- [ ] Apresentar widget de visualização no mapa integrado
+  - *Descrição técnica:* Fazer integração com um iFrame/Google Map ou Leaflet consumindo o trecho de endereço referenciado pela consulta.
 
 ---
 
 ## 🔵 Feature 3.5 — Chatbot de Triagem Preliminar
 
-### 📗 Backlog Item 3.5.1
+### 📗 Backlog Item 3.5.1 — Backend: Inteligência de Triagem
+**Como** sistema,
+**Quero** interpretar palavras e os incômodos relatados pelo paciente,
+**Para que** as prioridades iniciais criem o começo do atendimento agilizado.
+
+#### ✅ Tasks
+- [ ] Guardar relatórios das respostas no banco
+  - *Descrição técnica:* Aplicar entidade relacional que documente (`TriageSession`) gerando automaticamente links para Prontuário Preliminar.
+- [ ] Lidar com lógica textual ou de encaminhamento
+  - *Descrição técnica:* Implementar `TriageService` de indicação de médico, expostos dentro do modelo `POST /api/triage`.
+
+### 📗 Backlog Item 3.5.2 — Frontend: Conversa de Triagem Simulada
 **Como** paciente,
-**Quero** descrever meus sintomas em um chatbot e receber uma sugestão de especialidade,
-**Para que** eu seja direcionado ao profissional correto e já tenha um prontuário preliminar gerado.
+**Quero** mandar mensagens para o suporte do portal e descobrir sobre meu atendimento,
+**Para que** os passos burocráticos e clínicos prévios economizem tempo.
 
-#### ✅ Tasks — Backend
-- [ ] Criar entidade `TriageSession`: `id`, `pacientId`, `symptoms` (texto livre / lista), `suggestedSpecialty`, `createdAt`, `preliminaryRecordId`
-- [ ] Criar `TriageService`: lógica de sugestão de especialidade com base em palavras-chave dos sintomas
-- [ ] Criar endpoint `POST /api/triage` que recebe sintomas, sugere especialidade e cria prontuário preliminar vinculado ao paciente
-- [ ] Criar endpoint `GET /api/triage/{pacientId}` para buscar triagens anteriores
-
-#### ✅ Tasks — Frontend
-- [ ] Criar seção "Triagem / Chatbot" no `DashBoardPaciente.jsx`
-- [ ] Implementar interface de chat com fluxo guiado: coleta de sintomas em etapas
-- [ ] Exibir especialidade sugerida ao final do fluxo
-- [ ] Mostrar confirmação de criação de prontuário preliminar
-- [ ] Conectar ao `POST /api/triage`
+#### ✅ Tasks
+- [ ] Desenhar o ambiente virtual de Chat guiado
+  - *Descrição técnica:* Estruturar graficamente o fluxo do questionário em bolhas e avatares dentro do portal utilizando troca de informações com a rota `/api/triage`.
+- [ ] Entregar um encerramento para a interação da máquina
+  - *Descrição técnica:* Finalizar o preenchimento com clareza devolvendo o parecer virtual da recomendação da área da saúde ou do médico focado.
 
 ---
 
 ## 🔵 Feature 3.6 — Infraestrutura Frontend (Paciente)
 
-### 📗 Backlog Item 3.6.1
+### 📗 Backlog Item 3.6.1 — Frontend: Base de Navegação e Estabilidade
 **Como** desenvolvedor,
-**Quero** ter uma camada de serviços e gerenciamento de estado centralizada no frontend,
-**Para que** todas as funcionalidades do portal do paciente sejam consistentes e seguras.
+**Quero** criar uma experiência escalonável e centralizada,
+**Para que** as interfaces de navegação não quebrem subitamente.
 
-#### ✅ Tasks — Frontend
-- [ ] Criar `src/services/api.js` com Axios configurado: baseURL, interceptor de autenticação (JWT no header `Authorization: Bearer`)
-- [ ] Implementar tratamento centralizado de erros HTTP (401 → logout, 403 → mensagem de acesso negado, 500 → mensagem genérica)
-- [ ] Implementar gerenciamento de estado de autenticação com Context API (`AuthContext`) ou Zustand
-- [ ] Garantir responsividade completa do `DashBoardPaciente.jsx` em mobile
-- [ ] Adicionar estados de loading (spinners) e mensagens de erro/sucesso em todos os formulários do portal
-
----
+#### ✅ Tasks
+- [ ] Criar serviço e interrupções em local único
+  - *Descrição técnica:* Estabelecer todo as configurações unidas do Axios HTTP juntamente de tratamentos 401 ou erros de falha num arquivo próprio.
+- [ ] Disponibilizar autenticação fluída para qualquer tela
+  - *Descrição técnica:* Estabelecer o gerenciamento pelo formato API Context com sessão persistida interligando aberturas e acessos às requisições do paciente.
+- [ ] Refazer feedback contínuo e experiência portátil
+  - *Descrição técnica:* Inserir por todo pacote transições animadas e checar comportamento responsivo mobile do dashboard inteiro com interatividade (`loading`).
