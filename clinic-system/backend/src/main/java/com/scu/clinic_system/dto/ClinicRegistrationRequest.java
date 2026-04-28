@@ -2,19 +2,19 @@ package com.scu.clinic_system.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-// Se não tiver a biblioteca do Hibernate Validator BR, remova a anotação @CNPJ abaixo
-// import org.hibernate.validator.constraints.br.CNPJ;
+import jakarta.validation.constraints.Size;
 
 public record ClinicRegistrationRequest(
         @NotBlank(message = "O nome da clínica é obrigatório")
         String clinicName,
 
         @NotBlank(message = "O CNPJ é obrigatório")
-        // @CNPJ(message = "CNPJ inválido") // Descomente se tiver a dependência
+        @Size(min = 14, max = 14, message = "CNPJ deve ter 14 dígitos")
         String cnpj,
 
-        @NotBlank(message = "O endereço é obrigatório")
         String address,
+
+        String phone,
 
         @NotBlank(message = "O nome do admin é obrigatório")
         String adminName,
@@ -24,5 +24,12 @@ public record ClinicRegistrationRequest(
         String adminEmail,
 
         @NotBlank(message = "A senha do admin é obrigatória")
-        String adminPassword
+        String adminPassword,
+
+        @NotBlank(message = "O CPF do admin é obrigatório")
+        @Size(min = 11, max = 11, message = "CPF deve ter 11 dígitos")
+        String adminCpf,
+
+        @NotBlank(message = "A data de nascimento do admin é obrigatória")
+        String adminBirthDate
 ) {}

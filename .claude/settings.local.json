@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw compile *)",
+      "Read(//usr/lib/**)",
+      "Read(//usr/local/lib/**)",
+      "Read(//usr/**)",
+      "Bash(netstat -ano)"
+    ]
+  }
+}
