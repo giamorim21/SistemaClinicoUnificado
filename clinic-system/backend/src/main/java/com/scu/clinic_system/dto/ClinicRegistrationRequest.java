@@ -15,21 +15,6 @@ public record ClinicRegistrationRequest(
         String address,
 
         String phone,
-
-        @NotBlank(message = "O nome do admin é obrigatório")
-        String adminName,
-
-        @NotBlank(message = "O email do admin é obrigatório")
-        @Email(message = "Formato de email inválido")
-        String adminEmail,
-
-        @NotBlank(message = "A senha do admin é obrigatória")
-        String adminPassword,
-
-        @NotBlank(message = "O CPF do admin é obrigatório")
-        @Size(min = 11, max = 11, message = "CPF deve ter 11 dígitos")
-        String adminCpf,
-
-        @NotBlank(message = "A data de nascimento do admin é obrigatória")
-        String adminBirthDate
+        
+        java.util.UUID parentClinicId
 ) {}

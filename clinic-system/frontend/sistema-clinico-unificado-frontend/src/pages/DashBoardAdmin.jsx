@@ -14,6 +14,16 @@ const emptyDoctorForm = {
   rqe: "", formation: "", languages: "", areasOfPractice: "",
 };
 
+const emptySpecialtyForm = { name: "", description: "" };
+
+const emptyClinicForm = {
+  clinicName: "", cnpj: "", address: "", phone: "", isFilial: false, parentClinicId: ""
+};
+
+const emptyManagerForm = {
+  name: "", email: "", cpf: "", birthDate: "", password: "", clinicId: ""
+};
+
 export default function DashBoardAdmin() {
   const navigate = useNavigate();
   const user = getUser();
@@ -26,6 +36,7 @@ export default function DashBoardAdmin() {
   const [doctors,    setDoctors]    = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [clinics,    setClinics]    = useState([]);
+  const [managers,   setManagers]   = useState([]);
   const [loading,    setLoading]    = useState(false);
   const [apiError,   setApiError]   = useState("");
 
@@ -35,11 +46,34 @@ export default function DashBoardAdmin() {
   const [formSuccess,  setFormSuccess]  = useState("");
   const [submitting,   setSubmitting]   = useState(false);
 
+  // ── formulários de especialidade e clínica ────────────────────────────────
+  const [specialtyForm, setSpecialtyForm] = useState(emptySpecialtyForm);
+  const [specFormError, setSpecFormError] = useState("");
+  const [specFormSuccess, setSpecFormSuccess] = useState("");
+  const [submittingSpec, setSubmittingSpec] = useState(false);
+
+  const [clinicForm, setClinicForm] = useState(emptyClinicForm);
+  const [clinicFormError, setClinicFormError] = useState("");
+  const [clinicFormSuccess, setClinicFormSuccess] = useState("");
+  const [submittingClinic, setSubmittingClinic] = useState(false);
+
+  const [managerForm, setManagerForm] = useState(emptyManagerForm);
+  const [managerFormError, setManagerFormError] = useState("");
+  const [managerFormSuccess, setManagerFormSuccess] = useState("");
+  const [submittingManager, setSubmittingManager] = useState(false);
+
   // ── busca inicial ─────────────────────────────────────────────────────────
   const fetchDoctors = useCallback(async () => {
     try {
       const res = await apiFetch("/api/admin/staff/doctors");
       if (res.ok) setDoctors(await res.json());
+    } catch { /* silencioso */ }
+  }, []);
+
+  const fetchManagers = useCallback(async () => {
+    try {
+      const res = await apiFetch("/api/management/managers");
+      if (res.ok) setManagers(await res.json());
     } catch { /* silencioso */ }
   }, []);
 
@@ -54,6 +88,7 @@ export default function DashBoardAdmin() {
         if (resSpec.ok)   setSpecialties(await resSpec.json());
         if (resClinic.ok) setClinics(await resClinic.json());
         await fetchDoctors();
+        await fetchManagers();
       } catch {
         setApiError("Não foi possível carregar dados do servidor.");
       } finally {
@@ -61,7 +96,7 @@ export default function DashBoardAdmin() {
       }
     };
     loadAll();
-  }, [fetchDoctors]);
+  }, [fetchDoctors, fetchManagers]);
 
   // ── submit formulário médico ──────────────────────────────────────────────
   const handleCreateDoctor = async (e) => {
@@ -97,6 +132,106 @@ export default function DashBoardAdmin() {
     }
   };
 
+  const handleCreateSpecialty = async (e) => {
+    e.preventDefault();
+    setSpecFormError("");
+    setSpecFormSuccess("");
+
+    if (!specialtyForm.name) { setSpecFormError("O nome da especialidade é obrigatório."); return; }
+
+    setSubmittingSpec(true);
+    try {
+      const res = await apiFetch("/api/specialties", {
+        method: "POST",
+        body: JSON.stringify(specialtyForm),
+      });
+      if (!res.ok) { setSpecFormError("Erro ao cadastrar especialidade."); return; }
+
+      const body = await res.json();
+      setSpecFormSuccess(`Especialidade ${body.name} cadastrada com sucesso!`);
+      setSpecialtyForm(emptySpecialtyForm);
+      const resSpec = await apiFetch("/api/specialties");
+      if (resSpec.ok) setSpecialties(await resSpec.json());
+    } catch {
+      setSpecFormError("Erro de conexão com o servidor.");
+    } finally {
+      setSubmittingSpec(false);
+    }
+  };
+
+  const handleCreateClinic = async (e) => {
+    e.preventDefault();
+    setClinicFormError("");
+    setClinicFormSuccess("");
+
+    if (!clinicForm.clinicName || !clinicForm.cnpj) { 
+      setClinicFormError("Preencha todos os campos obrigatórios (Nome e CNPJ)."); 
+      return; 
+    }
+    if (clinicForm.isFilial && !clinicForm.parentClinicId) {
+      setClinicFormError("Selecione a clínica matriz.");
+      return;
+    }
+
+    setSubmittingClinic(true);
+    try {
+      const payload = {
+        clinicName: clinicForm.clinicName,
+        cnpj: clinicForm.cnpj.replace(/\D/g,""),
+        address: clinicForm.address,
+        phone: clinicForm.phone,
+        parentClinicId: clinicForm.isFilial ? clinicForm.parentClinicId : null
+      };
+      const res = await apiFetch("/api/management/create-clinic", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) { 
+        const errorText = await res.text();
+        setClinicFormError(errorText || "Erro ao cadastrar clínica."); 
+        return; 
+      }
+
+      setClinicFormSuccess(`Clínica ${clinicForm.clinicName} cadastrada com sucesso!`);
+      setClinicForm(emptyClinicForm);
+      const resClinic = await apiFetch("/api/management/clinics");
+      if (resClinic.ok) setClinics(await resClinic.json());
+    } catch {
+      setClinicFormError("Erro de conexão com o servidor.");
+    } finally {
+      setSubmittingClinic(false);
+    }
+  };
+
+  const handleCreateManager = async (e) => {
+    e.preventDefault();
+    setManagerFormError("");
+    setManagerFormSuccess("");
+
+    const required = ["name","email","cpf","birthDate","password","clinicId"];
+    const missing = required.filter(k => !managerForm[k]);
+    if (missing.length) { setManagerFormError("Preencha todos os campos obrigatórios."); return; }
+
+    setSubmittingManager(true);
+    try {
+      const payload = { ...managerForm, cpf: managerForm.cpf.replace(/\D/g,"") };
+      const res = await apiFetch("/api/management/create-manager", {
+        method: "POST", body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        setManagerFormError(errorText || "Erro ao cadastrar manager."); return;
+      }
+      setManagerFormSuccess("Manager cadastrado com sucesso!");
+      setManagerForm(emptyManagerForm);
+      await fetchManagers();
+    } catch {
+      setManagerFormError("Erro de conexão.");
+    } finally {
+      setSubmittingManager(false);
+    }
+  };
+
   // ── toggle ativo/inativo ──────────────────────────────────────────────────
   const handleToggleDoctor = async (id) => {
     try {
@@ -108,12 +243,16 @@ export default function DashBoardAdmin() {
   const handleLogout = () => { logout(); navigate("/login"); };
   const handleMenu   = (s) => { setActiveSection(s); if (window.innerWidth < 992) setSidebarOpen(false); };
   const setField     = (k) => (e) => setDoctorForm(f => ({ ...f, [k]: e.target.value }));
+  const setSpecField = (k) => (e) => setSpecialtyForm(f => ({ ...f, [k]: e.target.value }));
+  const setClinicField = (k) => (e) => setClinicForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+  const setManagerField = (k) => (e) => setManagerForm(f => ({ ...f, [k]: e.target.value }));
 
   // ── helpers de UI ─────────────────────────────────────────────────────────
   const menuItems = [
     { id: "overview", icon: "bi-grid-1x2-fill",      label: "Visão Geral" },
     { id: "staff",    icon: "bi-people-fill",          label: "Equipe" },
-    { id: "clinic",   icon: "bi-hospital-fill",        label: "Clínica" },
+    { id: "specialties", icon: "bi-award-fill",        label: "Especialidades" },
+    { id: "clinic",   icon: "bi-hospital-fill",        label: "Clínicas" },
     { id: "reports",  icon: "bi-bar-chart-line-fill",  label: "Relatórios" },
     { id: "logs",     icon: "bi-journal-text",         label: "Logs" },
     { id: "settings", icon: "bi-gear-fill",            label: "Configurações" },
@@ -345,9 +484,77 @@ export default function DashBoardAdmin() {
   // ─── STAFF (tabs) ──────────────────────────────────────────────────────────
   const staffTabs = [
     { id: "doctors", label: "Médicos" },
+    { id: "managers", label: "Managers" },
     { id: "receptionists", label: "Recepcionistas" },
     { id: "nurses", label: "Enfermeiros" },
   ];
+
+  const renderManagers = () => (
+    <>
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Manager</div>
+        {managerFormError   && <div className="alert alert-danger py-2">{managerFormError}</div>}
+        {managerFormSuccess && <div className="alert alert-success py-2">{managerFormSuccess}</div>}
+
+        <form onSubmit={handleCreateManager}>
+          <div className="row g-3">
+            <div className="col-md-6"><label className="form-label">Nome Completo *</label>
+              <input className="form-control" value={managerForm.name} onChange={setManagerField("name")} placeholder="João Silva" /></div>
+            <div className="col-md-6"><label className="form-label">E-mail *</label>
+              <input type="email" className="form-control" value={managerForm.email} onChange={setManagerField("email")} placeholder="manager@clinica.com" /></div>
+            <div className="col-md-4"><label className="form-label">CPF *</label>
+              <input className="form-control" value={managerForm.cpf} onChange={setManagerField("cpf")} placeholder="000.000.000-00" /></div>
+            <div className="col-md-4"><label className="form-label">Data de Nascimento *</label>
+              <input type="date" className="form-control" value={managerForm.birthDate} onChange={setManagerField("birthDate")} /></div>
+            <div className="col-md-4"><label className="form-label">Senha de Acesso *</label>
+              <input type="password" className="form-control" value={managerForm.password} onChange={setManagerField("password")} placeholder="••••••••" /></div>
+            <div className="col-md-12"><label className="form-label">Clínica Vinculada *</label>
+              <select className="form-select" value={managerForm.clinicId} onChange={setManagerField("clinicId")}>
+                <option value="">Selecione...</option>
+                {clinics.map(c => <option key={c.id} value={c.id}>{c.name} {c.parentClinic ? `(Filial)` : `(Matriz)`}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingManager}>
+              <i className="bi bi-check-lg" /> {submittingManager ? "Cadastrando..." : "Cadastrar Manager"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="adm-card">
+        <div className="adm-card-title"><i className="bi bi-list-ul" /> Managers Cadastrados</div>
+        {loading ? (
+          <div className="text-center py-4 text-muted">Carregando...</div>
+        ) : managers.length === 0 ? (
+          <div className="text-center py-4 text-muted">Nenhum manager cadastrado ainda.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="adm-table">
+              <thead>
+                <tr><th>Nome</th><th>E-mail</th><th>Clínica Vinculada</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {managers.map(m => (
+                  <tr key={m.id}>
+                    <td className="fw-semibold">{m.name}</td>
+                    <td>{m.email}</td>
+                    <td>{m.clinicName}</td>
+                    <td>
+                      <span className={`adm-badge ${m.active ? "active" : "inactive"}`}>
+                        {m.active ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   const renderStaff = () => (
     <section className="adm-fade-in">
@@ -360,8 +567,9 @@ export default function DashBoardAdmin() {
       </div>
 
       {staffTab === "doctors" && renderDoctors()}
+      {staffTab === "managers" && renderManagers()}
 
-      {staffTab !== "doctors" && (
+      {staffTab !== "doctors" && staffTab !== "managers" && (
         <div className="adm-card">
           <div className="text-center py-5 text-muted">
             <i className="bi bi-tools" style={{ fontSize: "2rem" }} />
@@ -372,9 +580,128 @@ export default function DashBoardAdmin() {
     </section>
   );
 
+  // ─── ESPECIALIDADES ────────────────────────────────────────────────────────
+  const renderSpecialties = () => (
+    <section className="adm-fade-in">
+      {/* Formulário de Especialidade */}
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-plus-circle" /> Cadastrar Especialidade</div>
+        {specFormError   && <div className="alert alert-danger py-2">{specFormError}</div>}
+        {specFormSuccess && <div className="alert alert-success py-2">{specFormSuccess}</div>}
+
+        <form onSubmit={handleCreateSpecialty}>
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Nome da Especialidade *</label>
+              <input className="form-control" value={specialtyForm.name} onChange={setSpecField("name")} placeholder="Ex: Cardiologia" />
+            </div>
+            <div className="col-md-8">
+              <label className="form-label">Descrição</label>
+              <input className="form-control" value={specialtyForm.description} onChange={setSpecField("description")} placeholder="Breve descrição da especialidade..." />
+            </div>
+          </div>
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingSpec}>
+              <i className="bi bi-check-lg" /> {submittingSpec ? "Cadastrando..." : "Cadastrar Especialidade"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Lista de Especialidades */}
+      <div className="adm-card">
+        <div className="adm-card-title">
+          <i className="bi bi-award-fill" /> Especialidades Cadastradas
+          <span className="ms-2 badge bg-secondary">{specialties.length}</span>
+        </div>
+        {specialties.length === 0 ? (
+          <div className="text-center py-4 text-muted">Nenhuma especialidade cadastrada ainda.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="adm-table">
+              <thead>
+                <tr><th>Nome</th><th>Descrição</th></tr>
+              </thead>
+              <tbody>
+                {specialties.map(s => (
+                  <tr key={s.id}>
+                    <td className="fw-semibold">{s.name}</td>
+                    <td>{s.description || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
   // ─── CLINIC ───────────────────────────────────────────────────────────────
   const renderClinic = () => (
     <section className="adm-fade-in">
+      {/* Formulário de Clínica */}
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-plus-circle" /> Cadastrar Nova Clínica</div>
+        {clinicFormError   && <div className="alert alert-danger py-2">{clinicFormError}</div>}
+        {clinicFormSuccess && <div className="alert alert-success py-2">{clinicFormSuccess}</div>}
+
+        <form onSubmit={handleCreateClinic}>
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-hospital" /> Dados da Clínica</div>
+            <div className="row g-3">
+              <div className="col-md-6">
+                <label className="form-label">Nome da Clínica *</label>
+                <input className="form-control" value={clinicForm.clinicName} onChange={setClinicField("clinicName")} placeholder="Ex: Clínica Saúde" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CNPJ *</label>
+                <input className="form-control" value={clinicForm.cnpj} onChange={setClinicField("cnpj")} placeholder="00.000.000/0000-00" />
+              </div>
+              <div className="col-md-8">
+                <label className="form-label">Endereço</label>
+                <input className="form-control" value={clinicForm.address} onChange={setClinicField("address")} placeholder="Rua, Número, Bairro, Cidade - UF" />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">Telefone</label>
+                <input className="form-control" value={clinicForm.phone} onChange={setClinicField("phone")} placeholder="(00) 0000-0000" />
+              </div>
+            </div>
+          </div>
+
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-diagram-3" /> Hierarquia</div>
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="form-check form-switch">
+                  <input className="form-check-input" type="checkbox" id="isFilialSwitch" checked={clinicForm.isFilial} onChange={setClinicField("isFilial")} />
+                  <label className="form-check-label fw-bold" htmlFor="isFilialSwitch">Esta clínica é uma filial de outra clínica existente?</label>
+                </div>
+              </div>
+              {clinicForm.isFilial && (
+                <div className="col-md-6">
+                  <label className="form-label">Selecione a Clínica Matriz *</label>
+                  <select className="form-select" value={clinicForm.parentClinicId} onChange={setClinicField("parentClinicId")}>
+                    <option value="">Selecione...</option>
+                    {clinics.filter(c => !c.parentClinic).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingClinic}>
+              <i className="bi bi-check-lg" /> {submittingClinic ? "Cadastrando..." : "Cadastrar Clínica"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Lista de Clínicas */}
+      <h5 className="mb-3"><i className="bi bi-h-square" /> Clínicas Cadastradas</h5>
       {clinics.length === 0 ? (
         <div className="adm-card text-center py-5 text-muted">Nenhuma clínica cadastrada.</div>
       ) : (
@@ -440,13 +767,15 @@ export default function DashBoardAdmin() {
   // ─── RENDER PRINCIPAL ─────────────────────────────────────────────────────
   const sectionTitles = {
     overview: "Visão Geral", staff: "Gestão de Equipe",
-    clinic: "Clínicas", reports: "Relatórios", logs: "Logs", settings: "Configurações",
+    specialties: "Especialidades", clinic: "Clínicas", 
+    reports: "Relatórios", logs: "Logs", settings: "Configurações",
   };
 
   const renderContent = () => {
     switch (activeSection) {
       case "overview":  return renderOverview();
       case "staff":     return renderStaff();
+      case "specialties": return renderSpecialties();
       case "clinic":    return renderClinic();
       case "reports":   return renderReports();
       case "logs":      return renderLogs();

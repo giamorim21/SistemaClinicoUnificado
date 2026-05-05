@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface ClinicRepository extends JpaRepository<Clinic, UUID> {
     boolean existsByCnpj(String cnpj);
     Optional<Clinic> findByCnpj(String cnpj);
+    java.util.List<Clinic> findByParentClinicId(UUID parentClinicId);
 }

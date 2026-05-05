@@ -2,6 +2,7 @@ package com.scu.clinic_system.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.UUID;
 
 @Entity
@@ -9,6 +10,7 @@ import java.util.UUID;
         @Index(name = "idx_clinic_name", columnList = "name"),
         @Index(name = "idx_clinic_cnpj", columnList = "cnpj")
 })
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Clinic {
 
     @Id
@@ -28,6 +30,10 @@ public class Clinic {
     @Column(length = 14, unique = true)
     private String cnpj;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_clinic_id")
+    private Clinic parentClinic;
+
     public UUID getId() { return id; }
 
     public String getName() { return name; }
@@ -41,4 +47,7 @@ public class Clinic {
 
     public String getCnpj() { return cnpj; }
     public void setCnpj(String cnpj) { this.cnpj = cnpj; }
+
+    public Clinic getParentClinic() { return parentClinic; }
+    public void setParentClinic(Clinic parentClinic) { this.parentClinic = parentClinic; }
 }
