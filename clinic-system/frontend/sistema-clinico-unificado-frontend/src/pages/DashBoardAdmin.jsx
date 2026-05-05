@@ -1,90 +1,268 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/admin-dashboard.css";
+import { apiFetch, getUser, logout } from "../utils/auth";
+
+const COUNCIL_STATES = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
+const emptyDoctorForm = {
+  name: "", email: "", cpf: "", birthDate: "", password: "",
+  specialtyId: "", clinicId: "",
+  councilType: "CRM", councilNumber: "", councilState: "SP",
+  rqe: "", formation: "", languages: "", areasOfPractice: "",
+};
+
+const emptySpecialtyForm = { name: "", description: "" };
+
+const emptyClinicForm = {
+  clinicName: "", cnpj: "", address: "", phone: "", isFilial: false, parentClinicId: ""
+};
+
+const emptyManagerForm = {
+  name: "", email: "", cpf: "", birthDate: "", password: "", clinicId: ""
+};
 
 export default function DashBoardAdmin() {
-  const [activeSection, setActiveSection] = useState("overview");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [staffTab, setStaffTab] = useState("doctors");
+  const navigate = useNavigate();
+  const user = getUser();
 
-  const handleMenu = (section) => {
-    setActiveSection(section);
-    if (window.innerWidth < 992) setSidebarOpen(false);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [sidebarOpen, setSidebarOpen]     = useState(false);
+  const [staffTab, setStaffTab]           = useState("doctors");
+
+  // ── dados da API ──────────────────────────────────────────────────────────
+  const [doctors,    setDoctors]    = useState([]);
+  const [specialties, setSpecialties] = useState([]);
+  const [clinics,    setClinics]    = useState([]);
+  const [managers,   setManagers]   = useState([]);
+  const [loading,    setLoading]    = useState(false);
+  const [apiError,   setApiError]   = useState("");
+
+  // ── formulário de médico ──────────────────────────────────────────────────
+  const [doctorForm,   setDoctorForm]   = useState(emptyDoctorForm);
+  const [formError,    setFormError]    = useState("");
+  const [formSuccess,  setFormSuccess]  = useState("");
+  const [submitting,   setSubmitting]   = useState(false);
+
+  // ── formulários de especialidade e clínica ────────────────────────────────
+  const [specialtyForm, setSpecialtyForm] = useState(emptySpecialtyForm);
+  const [specFormError, setSpecFormError] = useState("");
+  const [specFormSuccess, setSpecFormSuccess] = useState("");
+  const [submittingSpec, setSubmittingSpec] = useState(false);
+
+  const [clinicForm, setClinicForm] = useState(emptyClinicForm);
+  const [clinicFormError, setClinicFormError] = useState("");
+  const [clinicFormSuccess, setClinicFormSuccess] = useState("");
+  const [submittingClinic, setSubmittingClinic] = useState(false);
+
+  const [managerForm, setManagerForm] = useState(emptyManagerForm);
+  const [managerFormError, setManagerFormError] = useState("");
+  const [managerFormSuccess, setManagerFormSuccess] = useState("");
+  const [submittingManager, setSubmittingManager] = useState(false);
+
+  // ── busca inicial ─────────────────────────────────────────────────────────
+  const fetchDoctors = useCallback(async () => {
+    try {
+      const res = await apiFetch("/api/admin/staff/doctors");
+      if (res.ok) setDoctors(await res.json());
+    } catch { /* silencioso */ }
+  }, []);
+
+  const fetchManagers = useCallback(async () => {
+    try {
+      const res = await apiFetch("/api/management/managers");
+      if (res.ok) setManagers(await res.json());
+    } catch { /* silencioso */ }
+  }, []);
+
+  useEffect(() => {
+    const loadAll = async () => {
+      setLoading(true);
+      try {
+        const [resSpec, resClinic] = await Promise.all([
+          apiFetch("/api/specialties"),
+          apiFetch("/api/management/clinics"),
+        ]);
+        if (resSpec.ok)   setSpecialties(await resSpec.json());
+        if (resClinic.ok) setClinics(await resClinic.json());
+        await fetchDoctors();
+        await fetchManagers();
+      } catch {
+        setApiError("Não foi possível carregar dados do servidor.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAll();
+  }, [fetchDoctors, fetchManagers]);
+
+  // ── submit formulário médico ──────────────────────────────────────────────
+  const handleCreateDoctor = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSuccess("");
+
+    const required = ["name","email","cpf","birthDate","password","specialtyId","clinicId","councilNumber","councilState"];
+    const missing = required.filter(k => !doctorForm[k]);
+    if (missing.length) { setFormError("Preencha todos os campos obrigatórios."); return; }
+    if (doctorForm.cpf.replace(/\D/g,"").length !== 11) { setFormError("CPF deve ter 11 dígitos."); return; }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        ...doctorForm,
+        cpf: doctorForm.cpf.replace(/\D/g,""),
+      };
+      const res = await apiFetch("/api/admin/staff/doctor", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) { setFormError(typeof body === "string" ? body : "Erro ao cadastrar médico."); return; }
+
+      setFormSuccess(`Médico ${body.userName} cadastrado com sucesso!`);
+      setDoctorForm(emptyDoctorForm);
+      await fetchDoctors();
+    } catch {
+      setFormError("Erro de conexão com o servidor.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const handleCreateSpecialty = async (e) => {
+    e.preventDefault();
+    setSpecFormError("");
+    setSpecFormSuccess("");
+
+    if (!specialtyForm.name) { setSpecFormError("O nome da especialidade é obrigatório."); return; }
+
+    setSubmittingSpec(true);
+    try {
+      const res = await apiFetch("/api/specialties", {
+        method: "POST",
+        body: JSON.stringify(specialtyForm),
+      });
+      if (!res.ok) { setSpecFormError("Erro ao cadastrar especialidade."); return; }
+
+      const body = await res.json();
+      setSpecFormSuccess(`Especialidade ${body.name} cadastrada com sucesso!`);
+      setSpecialtyForm(emptySpecialtyForm);
+      const resSpec = await apiFetch("/api/specialties");
+      if (resSpec.ok) setSpecialties(await resSpec.json());
+    } catch {
+      setSpecFormError("Erro de conexão com o servidor.");
+    } finally {
+      setSubmittingSpec(false);
+    }
+  };
+
+  const handleCreateClinic = async (e) => {
+    e.preventDefault();
+    setClinicFormError("");
+    setClinicFormSuccess("");
+
+    if (!clinicForm.clinicName || !clinicForm.cnpj) { 
+      setClinicFormError("Preencha todos os campos obrigatórios (Nome e CNPJ)."); 
+      return; 
+    }
+    if (clinicForm.isFilial && !clinicForm.parentClinicId) {
+      setClinicFormError("Selecione a clínica matriz.");
+      return;
+    }
+
+    setSubmittingClinic(true);
+    try {
+      const payload = {
+        clinicName: clinicForm.clinicName,
+        cnpj: clinicForm.cnpj.replace(/\D/g,""),
+        address: clinicForm.address,
+        phone: clinicForm.phone,
+        parentClinicId: clinicForm.isFilial ? clinicForm.parentClinicId : null
+      };
+      const res = await apiFetch("/api/management/create-clinic", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) { 
+        const errorText = await res.text();
+        setClinicFormError(errorText || "Erro ao cadastrar clínica."); 
+        return; 
+      }
+
+      setClinicFormSuccess(`Clínica ${clinicForm.clinicName} cadastrada com sucesso!`);
+      setClinicForm(emptyClinicForm);
+      const resClinic = await apiFetch("/api/management/clinics");
+      if (resClinic.ok) setClinics(await resClinic.json());
+    } catch {
+      setClinicFormError("Erro de conexão com o servidor.");
+    } finally {
+      setSubmittingClinic(false);
+    }
+  };
+
+  const handleCreateManager = async (e) => {
+    e.preventDefault();
+    setManagerFormError("");
+    setManagerFormSuccess("");
+
+    const required = ["name","email","cpf","birthDate","password","clinicId"];
+    const missing = required.filter(k => !managerForm[k]);
+    if (missing.length) { setManagerFormError("Preencha todos os campos obrigatórios."); return; }
+
+    setSubmittingManager(true);
+    try {
+      const payload = { ...managerForm, cpf: managerForm.cpf.replace(/\D/g,"") };
+      const res = await apiFetch("/api/management/create-manager", {
+        method: "POST", body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        setManagerFormError(errorText || "Erro ao cadastrar manager."); return;
+      }
+      setManagerFormSuccess("Manager cadastrado com sucesso!");
+      setManagerForm(emptyManagerForm);
+      await fetchManagers();
+    } catch {
+      setManagerFormError("Erro de conexão.");
+    } finally {
+      setSubmittingManager(false);
+    }
+  };
+
+  // ── toggle ativo/inativo ──────────────────────────────────────────────────
+  const handleToggleDoctor = async (id) => {
+    try {
+      const res = await apiFetch(`/api/admin/staff/doctor/${id}/toggle`, { method: "POST" });
+      if (res.ok) await fetchDoctors();
+    } catch { /* silencioso */ }
+  };
+
+  const handleLogout = () => { logout(); navigate("/login"); };
+  const handleMenu   = (s) => { setActiveSection(s); if (window.innerWidth < 992) setSidebarOpen(false); };
+  const setField     = (k) => (e) => setDoctorForm(f => ({ ...f, [k]: e.target.value }));
+  const setSpecField = (k) => (e) => setSpecialtyForm(f => ({ ...f, [k]: e.target.value }));
+  const setClinicField = (k) => (e) => setClinicForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+  const setManagerField = (k) => (e) => setManagerForm(f => ({ ...f, [k]: e.target.value }));
+
+  // ── helpers de UI ─────────────────────────────────────────────────────────
   const menuItems = [
-    { id: "overview", icon: "bi-grid-1x2-fill", label: "Visão Geral" },
-    { id: "staff", icon: "bi-people-fill", label: "Equipe" },
-    { id: "clinic", icon: "bi-hospital-fill", label: "Clínica" },
-    { id: "reports", icon: "bi-bar-chart-line-fill", label: "Relatórios" },
-    { id: "logs", icon: "bi-journal-text", label: "Logs de Atividade" },
-    { id: "settings", icon: "bi-gear-fill", label: "Configurações" },
-  ];
-
-  const mockDoctors = [
-    { name: "Dr. Carlos Silva", crm: "CRM/SP 12345", specialty: "Cardiologia", email: "carlos@clinica.com", status: "Ativo" },
-    { name: "Dra. Ana Souza", crm: "CRM/SP 67890", specialty: "Dermatologia", email: "ana@clinica.com", status: "Ativo" },
-    { name: "Dr. Pedro Lima", crm: "CRM/SP 11223", specialty: "Ortopedia", email: "pedro@clinica.com", status: "Inativo" },
-  ];
-
-  const mockReceptionists = [
-    { name: "Maria Oliveira", cpf: "***.***.***-01", shift: "Manhã", registration: "REC-001", email: "maria@clinica.com", status: "Ativo" },
-    { name: "José Santos", cpf: "***.***.***-02", shift: "Tarde", registration: "REC-002", email: "jose@clinica.com", status: "Ativo" },
-  ];
-
-  const mockNurses = [
-    { name: "Carla Mendes", coren: "COREN/SP 45678", area: "Triagem", shift: "Manhã", email: "carla@clinica.com", status: "Ativo" },
-    { name: "Bruno Ferreira", coren: "COREN/RJ 99012", area: "UTI", shift: "Noite", email: "bruno@clinica.com", status: "Ativo" },
-    { name: "Juliana Costa", coren: "COREN/MG 33456", area: "Emergência", shift: "Tarde", email: "juliana@clinica.com", status: "Inativo" },
-  ];
-
-  const mockAdmins = [
-    { name: "Ricardo Gomes", cpf: "***.***.***-10", role: "Diretor Administrativo", email: "ricardo@clinica.com", phone: "(11) 91234-0001", status: "Ativo" },
-    { name: "Fernanda Alves", cpf: "***.***.***-11", role: "Coord. Financeiro", email: "fernanda@clinica.com", phone: "(11) 91234-0002", status: "Ativo" },
-  ];
-
-  const mockManagement = [
-    { name: "Marcos Ribeiro", cpf: "***.***.***-20", role: "Gestor Operacional", sector: "Operações", level: "Avançado", email: "marcos@clinica.com", status: "Ativo" },
-    { name: "Patrícia Dias", cpf: "***.***.***-21", role: "Gestora de RH", sector: "Recursos Humanos", level: "Total", email: "patricia@clinica.com", status: "Ativo" },
-    { name: "Lucas Martins", cpf: "***.***.***-22", role: "Gestor Clínico", sector: "Clínico", level: "Intermediário", email: "lucas@clinica.com", status: "Inativo" },
+    { id: "overview", icon: "bi-grid-1x2-fill",      label: "Visão Geral" },
+    { id: "staff",    icon: "bi-people-fill",          label: "Equipe" },
+    { id: "specialties", icon: "bi-award-fill",        label: "Especialidades" },
+    { id: "clinic",   icon: "bi-hospital-fill",        label: "Clínicas" },
+    { id: "reports",  icon: "bi-bar-chart-line-fill",  label: "Relatórios" },
+    { id: "logs",     icon: "bi-journal-text",         label: "Logs" },
+    { id: "settings", icon: "bi-gear-fill",            label: "Configurações" },
   ];
 
   const mockLogs = [
-    { action: "Cadastro de médico", user: "Admin", detail: "Dr. Carlos Silva adicionado", time: "Hoje, 14:32", color: "blue" },
-    { action: "Atualização de clínica", user: "Admin", detail: "Endereço atualizado", time: "Hoje, 11:15", color: "green" },
-    { action: "Recepcionista desativada", user: "Admin", detail: "Joana Ferreira desativada", time: "Ontem, 16:45", color: "red" },
-    { action: "Relatório exportado", user: "Admin", detail: "Relatório mensal de consultas", time: "Ontem, 09:20", color: "yellow" },
-    { action: "Nova recepcionista", user: "Admin", detail: "Maria Oliveira cadastrada", time: "23/04, 10:00", color: "blue" },
+    { action: "Login", user: user?.name || "Admin", detail: "Acesso ao painel", time: "Agora", color: "blue" },
   ];
 
-  // Helper: tabela de staff reutilizável com botões de editar e status
-  const renderStaffTable = (title, columns, rows) => (
-    <div className="adm-card">
-      <div className="adm-card-title"><i className="bi bi-list-ul" /> {title}</div>
-      <div className="table-responsive">
-        <table className="adm-table">
-          <thead><tr>{columns.map((c, i) => <th key={i}>{c.label}</th>)}<th>Status</th><th style={{width:110}}>Ações</th></tr></thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i}>
-                {columns.map((c, j) => <td key={j} className={j === 0 ? "fw-semibold" : ""}>{r[c.key]}</td>)}
-                <td><span className={`adm-badge ${r.status === "Ativo" ? "active" : "inactive"}`}>{r.status}</span></td>
-                <td>
-                  <div className="d-flex gap-1">
-                    <button className="btn btn-sm btn-outline-primary" style={{borderRadius:8,fontSize:"0.78rem"}} title="Editar"><i className="bi bi-pencil-square" /></button>
-                    <button className={`btn btn-sm ${r.status === "Ativo" ? "btn-outline-danger" : "btn-outline-success"}`} style={{borderRadius:8,fontSize:"0.78rem"}} title={r.status === "Ativo" ? "Desativar" : "Ativar"}><i className={`bi ${r.status === "Ativo" ? "bi-toggle-on" : "bi-toggle-off"}`} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  // ─── SIDEBAR ───
+  // ─── SIDEBAR ──────────────────────────────────────────────────────────────
   const renderSidebar = () => (
     <>
       {sidebarOpen && <div className="adm-sidebar-overlay show" onClick={() => setSidebarOpen(false)} />}
@@ -105,34 +283,33 @@ export default function DashBoardAdmin() {
           {menuItems.map((m) => (
             <li key={m.id}>
               <button className={`adm-menu-btn ${activeSection === m.id ? "active" : ""}`} onClick={() => handleMenu(m.id)}>
-                <i className={`bi ${m.icon}`} />
-                <span>{m.label}</span>
+                <i className={`bi ${m.icon}`} /><span>{m.label}</span>
               </button>
             </li>
           ))}
         </ul>
 
         <div className="adm-sidebar-footer">
-          <button className="adm-menu-btn" style={{ color: "rgba(255,255,255,0.5)" }}>
-            <i className="bi bi-box-arrow-left" />
-            <span>Sair</span>
+          <button className="adm-menu-btn" style={{ color: "rgba(255,255,255,0.5)" }} onClick={handleLogout}>
+            <i className="bi bi-box-arrow-left" /><span>Sair</span>
           </button>
         </div>
       </aside>
     </>
   );
 
-  // ─── OVERVIEW ───
+  // ─── OVERVIEW ─────────────────────────────────────────────────────────────
   const renderOverview = () => {
     const kpis = [
-      { label: "Médicos Cadastrados", value: "8", sub: <><span className="up">+2</span> este mês</>, icon: "bi-heart-pulse-fill", iconClass: "blue", cardClass: "" },
-      { label: "Recepcionistas", value: "4", sub: "Todos ativos", icon: "bi-person-badge-fill", iconClass: "green", cardClass: "accent" },
-      { label: "Pacientes Ativos", value: "1.247", sub: <><span className="up">+89</span> novos este mês</>, icon: "bi-people-fill", iconClass: "yellow", cardClass: "warning" },
-      { label: "Consultas Hoje", value: "34", sub: <><span className="down">-5</span> vs. ontem</>, icon: "bi-calendar-check-fill", iconClass: "cyan", cardClass: "info" },
+      { label: "Médicos Cadastrados", value: doctors.length, icon: "bi-heart-pulse-fill", iconClass: "blue", cardClass: "" },
+      { label: "Especialidades", value: specialties.length, icon: "bi-award-fill", iconClass: "green", cardClass: "accent" },
+      { label: "Clínicas", value: clinics.length, icon: "bi-hospital-fill", iconClass: "yellow", cardClass: "warning" },
+      { label: "Médicos Ativos", value: doctors.filter(d => d.profileEnabled).length, icon: "bi-person-check-fill", iconClass: "cyan", cardClass: "info" },
     ];
-
     return (
       <section className="adm-fade-in">
+        {loading && <div className="alert alert-info">Carregando dados...</div>}
+        {apiError && <div className="alert alert-danger">{apiError}</div>}
         <div className="row g-4 mb-4">
           {kpis.map((k, i) => (
             <div className="col-12 col-sm-6 col-xl-3" key={i}>
@@ -140,424 +317,474 @@ export default function DashBoardAdmin() {
                 <div className={`adm-kpi-icon ${k.iconClass}`}><i className={`bi ${k.icon}`} /></div>
                 <div className="adm-kpi-label">{k.label}</div>
                 <div className="adm-kpi-value">{k.value}</div>
-                <div className="adm-kpi-sub">{k.sub}</div>
               </div>
             </div>
           ))}
         </div>
-
-        <div className="row g-4">
-          <div className="col-lg-7">
-            <div className="adm-card">
-              <div className="adm-card-title"><i className="bi bi-graph-up" /> Atendimentos — Últimas 4 Semanas</div>
-              <div className="adm-chart-placeholder">
-                <i className="bi bi-bar-chart-line" />
-                Gráfico de atendimentos semanais<br />
-                <small>(Integração com biblioteca de gráficos em breve)</small>
+        <div className="adm-card">
+          <div className="adm-card-title"><i className="bi bi-clock-history" /> Atividade Recente</div>
+          {mockLogs.map((l, i) => (
+            <div className="adm-activity-item" key={i}>
+              <div className={`adm-activity-dot ${l.color}`} />
+              <div>
+                <div className="adm-activity-text"><strong>{l.action}</strong> — {l.detail}</div>
+                <div className="adm-activity-time">{l.time}</div>
               </div>
             </div>
-          </div>
-          <div className="col-lg-5">
-            <div className="adm-card">
-              <div className="adm-card-title"><i className="bi bi-clock-history" /> Atividade Recente</div>
-              {mockLogs.slice(0, 4).map((l, i) => (
-                <div className="adm-activity-item" key={i}>
-                  <div className={`adm-activity-dot ${l.color}`} />
-                  <div>
-                    <div className="adm-activity-text"><strong>{l.action}</strong> — {l.detail}</div>
-                    <div className="adm-activity-time">{l.time}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </section>
     );
   };
 
-  // ─── STAFF ───
+  // ─── ABA MÉDICOS ──────────────────────────────────────────────────────────
+  const renderDoctors = () => (
+    <>
+      {/* Formulário de cadastro */}
+      <div className="adm-card">
+        <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Médico</div>
+
+        {formError   && <div className="alert alert-danger py-2">{formError}</div>}
+        {formSuccess && <div className="alert alert-success py-2">{formSuccess}</div>}
+
+        <form onSubmit={handleCreateDoctor}>
+          {/* Dados de acesso */}
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-person" /> Dados Pessoais e Acesso</div>
+            <div className="row g-3">
+              <div className="col-md-6"><label className="form-label">Nome Completo *</label>
+                <input className="form-control" value={doctorForm.name} onChange={setField("name")} placeholder="Dr. João Silva" /></div>
+              <div className="col-md-6"><label className="form-label">E-mail *</label>
+                <input type="email" className="form-control" value={doctorForm.email} onChange={setField("email")} placeholder="medico@clinica.com" /></div>
+              <div className="col-md-4"><label className="form-label">CPF *</label>
+                <input className="form-control" value={doctorForm.cpf} onChange={setField("cpf")} placeholder="000.000.000-00" /></div>
+              <div className="col-md-4"><label className="form-label">Data de Nascimento *</label>
+                <input type="date" className="form-control" value={doctorForm.birthDate} onChange={setField("birthDate")} /></div>
+              <div className="col-md-4"><label className="form-label">Senha *</label>
+                <input type="password" className="form-control" value={doctorForm.password} onChange={setField("password")} placeholder="••••••••" /></div>
+            </div>
+          </div>
+
+          {/* Conselho */}
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-card-checklist" /> Conselho Profissional</div>
+            <div className="row g-3">
+              <div className="col-md-3"><label className="form-label">Tipo *</label>
+                <select className="form-select" value={doctorForm.councilType} onChange={setField("councilType")}>
+                  <option value="CRM">CRM</option>
+                  <option value="COREM">COREM</option>
+                </select>
+              </div>
+              <div className="col-md-4"><label className="form-label">Número *</label>
+                <input className="form-control" value={doctorForm.councilNumber} onChange={setField("councilNumber")} placeholder="00000" /></div>
+              <div className="col-md-2"><label className="form-label">Estado *</label>
+                <select className="form-select" value={doctorForm.councilState} onChange={setField("councilState")}>
+                  {COUNCIL_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="col-md-3"><label className="form-label">RQE</label>
+                <input className="form-control" value={doctorForm.rqe} onChange={setField("rqe")} placeholder="Nº RQE (opcional)" /></div>
+            </div>
+          </div>
+
+          {/* Especialidade e clínica */}
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-award" /> Especialidade e Clínica</div>
+            <div className="row g-3">
+              <div className="col-md-6"><label className="form-label">Especialidade *</label>
+                <select className="form-select" value={doctorForm.specialtyId} onChange={setField("specialtyId")}>
+                  <option value="">Selecione...</option>
+                  {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+                {specialties.length === 0 && <div className="form-text text-warning">Nenhuma especialidade cadastrada ainda.</div>}
+              </div>
+              <div className="col-md-6"><label className="form-label">Clínica *</label>
+                <select className="form-select" value={doctorForm.clinicId} onChange={setField("clinicId")}>
+                  <option value="">Selecione...</option>
+                  {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                {clinics.length === 0 && <div className="form-text text-warning">Nenhuma clínica cadastrada ainda.</div>}
+              </div>
+            </div>
+          </div>
+
+          {/* Formação */}
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-mortarboard" /> Formação (opcional)</div>
+            <div className="row g-3">
+              <div className="col-md-4"><label className="form-label">Formação Acadêmica</label>
+                <input className="form-control" value={doctorForm.formation} onChange={setField("formation")} placeholder="Ex: USP — Medicina" /></div>
+              <div className="col-md-4"><label className="form-label">Idiomas</label>
+                <input className="form-control" value={doctorForm.languages} onChange={setField("languages")} placeholder="Ex: Português, Inglês" /></div>
+              <div className="col-md-4"><label className="form-label">Áreas de Atuação</label>
+                <input className="form-control" value={doctorForm.areasOfPractice} onChange={setField("areasOfPractice")} placeholder="Ex: Hemodinâmica" /></div>
+            </div>
+          </div>
+
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submitting}>
+              <i className="bi bi-check-lg" /> {submitting ? "Cadastrando..." : "Cadastrar Médico"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Lista de médicos */}
+      <div className="adm-card">
+        <div className="adm-card-title">
+          <i className="bi bi-list-ul" /> Médicos Cadastrados
+          <span className="ms-2 badge bg-secondary">{doctors.length}</span>
+        </div>
+        {loading ? (
+          <div className="text-center py-4 text-muted">Carregando...</div>
+        ) : doctors.length === 0 ? (
+          <div className="text-center py-4 text-muted">Nenhum médico cadastrado ainda.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Nome</th><th>Conselho</th><th>Especialidade</th>
+                  <th>Clínica</th><th>E-mail</th><th>Status</th><th style={{width:90}}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doctors.map((d) => (
+                  <tr key={d.id}>
+                    <td className="fw-semibold">{d.userName}</td>
+                    <td>{d.councilType}/{d.councilState} {d.councilNumber}</td>
+                    <td>{d.specialtyName}</td>
+                    <td>{d.clinicName}</td>
+                    <td>{d.userEmail}</td>
+                    <td>
+                      <span className={`adm-badge ${d.profileEnabled ? "active" : "inactive"}`}>
+                        {d.profileEnabled ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className={`btn btn-sm ${d.profileEnabled ? "btn-outline-danger" : "btn-outline-success"}`}
+                        style={{ borderRadius: 8, fontSize: "0.78rem" }}
+                        title={d.profileEnabled ? "Desativar" : "Ativar"}
+                        onClick={() => handleToggleDoctor(d.id)}
+                      >
+                        <i className={`bi ${d.profileEnabled ? "bi-toggle-on" : "bi-toggle-off"}`} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  // ─── STAFF (tabs) ──────────────────────────────────────────────────────────
   const staffTabs = [
     { id: "doctors", label: "Médicos" },
+    { id: "managers", label: "Managers" },
     { id: "receptionists", label: "Recepcionistas" },
     { id: "nurses", label: "Enfermeiros" },
-    { id: "admins", label: "Administradores" },
-    { id: "management", label: "Gestão" },
   ];
+
+  const renderManagers = () => (
+    <>
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Manager</div>
+        {managerFormError   && <div className="alert alert-danger py-2">{managerFormError}</div>}
+        {managerFormSuccess && <div className="alert alert-success py-2">{managerFormSuccess}</div>}
+
+        <form onSubmit={handleCreateManager}>
+          <div className="row g-3">
+            <div className="col-md-6"><label className="form-label">Nome Completo *</label>
+              <input className="form-control" value={managerForm.name} onChange={setManagerField("name")} placeholder="João Silva" /></div>
+            <div className="col-md-6"><label className="form-label">E-mail *</label>
+              <input type="email" className="form-control" value={managerForm.email} onChange={setManagerField("email")} placeholder="manager@clinica.com" /></div>
+            <div className="col-md-4"><label className="form-label">CPF *</label>
+              <input className="form-control" value={managerForm.cpf} onChange={setManagerField("cpf")} placeholder="000.000.000-00" /></div>
+            <div className="col-md-4"><label className="form-label">Data de Nascimento *</label>
+              <input type="date" className="form-control" value={managerForm.birthDate} onChange={setManagerField("birthDate")} /></div>
+            <div className="col-md-4"><label className="form-label">Senha de Acesso *</label>
+              <input type="password" className="form-control" value={managerForm.password} onChange={setManagerField("password")} placeholder="••••••••" /></div>
+            <div className="col-md-12"><label className="form-label">Clínica Vinculada *</label>
+              <select className="form-select" value={managerForm.clinicId} onChange={setManagerField("clinicId")}>
+                <option value="">Selecione...</option>
+                {clinics.map(c => <option key={c.id} value={c.id}>{c.name} {c.parentClinic ? `(Filial)` : `(Matriz)`}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingManager}>
+              <i className="bi bi-check-lg" /> {submittingManager ? "Cadastrando..." : "Cadastrar Manager"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="adm-card">
+        <div className="adm-card-title"><i className="bi bi-list-ul" /> Managers Cadastrados</div>
+        {loading ? (
+          <div className="text-center py-4 text-muted">Carregando...</div>
+        ) : managers.length === 0 ? (
+          <div className="text-center py-4 text-muted">Nenhum manager cadastrado ainda.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="adm-table">
+              <thead>
+                <tr><th>Nome</th><th>E-mail</th><th>Clínica Vinculada</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {managers.map(m => (
+                  <tr key={m.id}>
+                    <td className="fw-semibold">{m.name}</td>
+                    <td>{m.email}</td>
+                    <td>{m.clinicName}</td>
+                    <td>
+                      <span className={`adm-badge ${m.active ? "active" : "inactive"}`}>
+                        {m.active ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   const renderStaff = () => (
     <section className="adm-fade-in">
-      <div className="adm-tab-nav" style={{ maxWidth: 620, flexWrap: "wrap" }}>
+      <div className="adm-tab-nav" style={{ maxWidth: 500, flexWrap: "wrap" }}>
         {staffTabs.map((t) => (
-          <button key={t.id} className={`adm-tab-btn ${staffTab === t.id ? "active" : ""}`} onClick={() => setStaffTab(t.id)}>{t.label}</button>
+          <button key={t.id} className={`adm-tab-btn ${staffTab === t.id ? "active" : ""}`} onClick={() => setStaffTab(t.id)}>
+            {t.label}
+          </button>
         ))}
       </div>
 
-      {staffTab === "doctors" && (
-        <>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Médico / Profissional de Saúde</div>
-            <div className="adm-form-section">
-              <div className="adm-form-section-title"><i className="bi bi-person" /> Dados de Acesso</div>
-              <div className="row g-3">
-                <div className="col-md-6"><label className="form-label">Usuário (E-mail)</label><input type="email" className="form-control" placeholder="medico@clinica.com" /></div>
-                <div className="col-md-6"><label className="form-label">Senha</label><input type="password" className="form-control" placeholder="••••••••" /></div>
-              </div>
-            </div>
-            <div className="adm-form-section">
-              <div className="adm-form-section-title"><i className="bi bi-card-checklist" /> Conselho Profissional</div>
-              <div className="row g-3">
-                <div className="col-md-3">
-                  <label className="form-label">Tipo de Conselho</label>
-                  <select className="form-select"><option>CRM</option><option>CRO</option><option>CRP</option><option>CREFITO</option><option>CRN</option><option>Outro</option></select>
-                </div>
-                <div className="col-md-3"><label className="form-label">Número</label><input type="text" className="form-control" placeholder="00000" /></div>
-                <div className="col-md-3">
-                  <label className="form-label">Estado (UF)</label>
-                  <select className="form-select"><option>SP</option><option>RJ</option><option>MG</option><option>RS</option><option>PR</option><option>BA</option><option>Outro</option></select>
-                </div>
-                <div className="col-md-3">
-                  <label className="form-label">Situação</label>
-                  <select className="form-select"><option>Ativo</option><option>Inativo</option><option>Suspenso</option></select>
-                </div>
-              </div>
-            </div>
-            <div className="adm-form-section">
-              <div className="adm-form-section-title"><i className="bi bi-award" /> Especialização</div>
-              <div className="row g-3">
-                <div className="col-md-3">
-                  <label className="form-label">Tipo de Profissional</label>
-                  <select className="form-select"><option>Médico</option><option>Dentista</option><option>Psicólogo</option><option>Fisioterapeuta</option><option>Nutricionista</option></select>
-                </div>
-                <div className="col-md-3"><label className="form-label">Especialidade</label><input type="text" className="form-control" placeholder="Ex: Cardiologia" /></div>
-                <div className="col-md-3"><label className="form-label">RQE</label><input type="text" className="form-control" placeholder="Nº do RQE" /></div>
-                <div className="col-md-3"><label className="form-label">Área de Atuação</label><input type="text" className="form-control" placeholder="Ex: Hemodinâmica" /></div>
-              </div>
-            </div>
-            <div className="adm-form-section">
-              <div className="adm-form-section-title"><i className="bi bi-mortarboard" /> Formação e Vínculos</div>
-              <div className="row g-3">
-                <div className="col-md-4"><label className="form-label">Formação Acadêmica</label><input type="text" className="form-control" placeholder="Ex: USP — Medicina" /></div>
-                <div className="col-md-4"><label className="form-label">Idiomas</label><input type="text" className="form-control" placeholder="Ex: Português, Inglês" /></div>
-                <div className="col-md-4"><label className="form-label">Vínculos Institucionais</label><input type="text" className="form-control" placeholder="Hospital/Clínica" /></div>
-              </div>
-            </div>
-            <div className="adm-form-section">
-              <div className="adm-form-section-title"><i className="bi bi-sliders" /> Configurações</div>
-              <div className="row g-3">
-                <div className="col-md-3"><label className="form-label">Validade da Escala</label><input type="date" className="form-control" /></div>
-                <div className="col-md-3"><label className="form-label">Programas Associados</label><input type="text" className="form-control" placeholder="SUS, Convênio..." /></div>
-                <div className="col-md-3"><label className="form-label">Regras de Retorno</label><input type="text" className="form-control" placeholder="Ex: 30 dias" /></div>
-                <div className="col-md-3 d-flex flex-column gap-2 pt-4">
-                  <div className="form-check"><input className="form-check-input" type="checkbox" id="multiConsult" /><label className="form-check-label small" htmlFor="multiConsult">Múltiplas consultas</label></div>
-                  <div className="form-check"><input className="form-check-input" type="checkbox" id="habProfile" defaultChecked /><label className="form-check-label small" htmlFor="habProfile">Perfil médico habilitado</label></div>
-                </div>
-              </div>
-            </div>
-            <div className="text-end mt-3"><button className="adm-btn-primary"><i className="bi bi-check-lg" /> Cadastrar Profissional</button></div>
-          </div>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-list-ul" /> Médicos Cadastrados</div>
-            <div className="table-responsive">
-              <table className="adm-table">
-                <thead><tr><th>Nome</th><th>CRM</th><th>Especialidade</th><th>E-mail</th><th>Status</th></tr></thead>
-                <tbody>
-                  {mockDoctors.map((d, i) => (
-                    <tr key={i}>
-                      <td className="fw-semibold">{d.name}</td><td>{d.crm}</td><td>{d.specialty}</td><td>{d.email}</td>
-                      <td><span className={`adm-badge ${d.status === "Ativo" ? "active" : "inactive"}`}>{d.status}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
+      {staffTab === "doctors" && renderDoctors()}
+      {staffTab === "managers" && renderManagers()}
 
-      {staffTab === "receptionists" && (
-        <>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Nova Recepcionista</div>
-            <div className="row g-3">
-              <div className="col-md-6"><label className="form-label">Nome Completo</label><input type="text" className="form-control" placeholder="Nome completo" /></div>
-              <div className="col-md-3"><label className="form-label">CPF</label><input type="text" className="form-control" placeholder="000.000.000-00" /></div>
-              <div className="col-md-3"><label className="form-label">Data de Nascimento</label><input type="date" className="form-control" /></div>
-              <div className="col-md-3">
-                <label className="form-label">Sexo</label>
-                <select className="form-select"><option>Selecione</option><option>Feminino</option><option>Masculino</option><option>Outro</option></select>
-              </div>
-              <div className="col-md-9"><label className="form-label">Endereço</label><input type="text" className="form-control" placeholder="Rua, nº, bairro, cidade — UF" /></div>
-              <div className="col-md-4"><label className="form-label">Telefone</label><input type="tel" className="form-control" placeholder="(00) 00000-0000" /></div>
-              <div className="col-md-4"><label className="form-label">E-mail</label><input type="email" className="form-control" placeholder="recepcionista@clinica.com" /></div>
-              <div className="col-md-4"><label className="form-label">Matrícula</label><input type="text" className="form-control" placeholder="REC-000" /></div>
-              <div className="col-md-4">
-                <label className="form-label">Turno de Trabalho</label>
-                <select className="form-select"><option>Selecione</option><option>Manhã</option><option>Tarde</option><option>Noite</option><option>Integral</option></select>
-              </div>
-              <div className="col-md-4"><label className="form-label">Permissões</label><input type="text" className="form-control" placeholder="Ex: Agendamento, Cadastro" /></div>
-              <div className="col-md-4"><label className="form-label">Senha</label><input type="password" className="form-control" placeholder="••••••••" /></div>
-              <div className="col-12 text-end"><button className="adm-btn-accent"><i className="bi bi-check-lg" /> Cadastrar Recepcionista</button></div>
-            </div>
+      {staffTab !== "doctors" && staffTab !== "managers" && (
+        <div className="adm-card">
+          <div className="text-center py-5 text-muted">
+            <i className="bi bi-tools" style={{ fontSize: "2rem" }} />
+            <div className="mt-2">Em desenvolvimento — próxima sprint</div>
           </div>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-list-ul" /> Recepcionistas Cadastradas</div>
-            <div className="table-responsive">
-              <table className="adm-table">
-                <thead><tr><th>Nome</th><th>Matrícula</th><th>Turno</th><th>E-mail</th><th>Status</th></tr></thead>
-                <tbody>
-                  {mockReceptionists.map((r, i) => (
-                    <tr key={i}>
-                      <td className="fw-semibold">{r.name}</td><td>{r.registration}</td><td>{r.shift}</td><td>{r.email}</td>
-                      <td><span className={`adm-badge ${r.status === "Ativo" ? "active" : "inactive"}`}>{r.status}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
-
-      {staffTab === "nurses" && (
-        <>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Enfermeiro(a)</div>
-            <div className="row g-3">
-              <div className="col-md-6"><label className="form-label">Nome Completo</label><input type="text" className="form-control" placeholder="Nome completo" /></div>
-              <div className="col-md-3"><label className="form-label">CPF</label><input type="text" className="form-control" placeholder="000.000.000-00" /></div>
-              <div className="col-md-3"><label className="form-label">Data de Nascimento</label><input type="date" className="form-control" /></div>
-              <div className="col-md-3"><label className="form-label">COREN — Número</label><input type="text" className="form-control" placeholder="00000" /></div>
-              <div className="col-md-3">
-                <label className="form-label">COREN — Estado</label>
-                <select className="form-select"><option>SP</option><option>RJ</option><option>MG</option><option>RS</option><option>PR</option><option>BA</option><option>Outro</option></select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label">Sexo</label>
-                <select className="form-select"><option>Selecione</option><option>Feminino</option><option>Masculino</option><option>Outro</option></select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label">Turno</label>
-                <select className="form-select"><option>Selecione</option><option>Manhã</option><option>Tarde</option><option>Noite</option><option>Integral</option></select>
-              </div>
-              <div className="col-md-8"><label className="form-label">Endereço</label><input type="text" className="form-control" placeholder="Rua, nº, bairro, cidade — UF" /></div>
-              <div className="col-md-4"><label className="form-label">Telefone</label><input type="tel" className="form-control" placeholder="(00) 00000-0000" /></div>
-              <div className="col-md-4"><label className="form-label">E-mail</label><input type="email" className="form-control" placeholder="enfermeiro@clinica.com" /></div>
-              <div className="col-md-4"><label className="form-label">Experiência</label><input type="text" className="form-control" placeholder="Ex: 5 anos — UTI" /></div>
-              <div className="col-md-4"><label className="form-label">Área de Atuação</label><input type="text" className="form-control" placeholder="Ex: Triagem, UTI" /></div>
-              <div className="col-md-6"><label className="form-label">Permissões</label><input type="text" className="form-control" placeholder="Ex: Triagem, Medicação" /></div>
-              <div className="col-md-6"><label className="form-label">Senha</label><input type="password" className="form-control" placeholder="••••••••" /></div>
-              <div className="col-12 text-end"><button className="adm-btn-primary"><i className="bi bi-check-lg" /> Cadastrar Enfermeiro(a)</button></div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {staffTab === "admins" && (
-        <>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Administrador</div>
-            <div className="row g-3">
-              <div className="col-md-6"><label className="form-label">Nome Completo</label><input type="text" className="form-control" placeholder="Nome completo" /></div>
-              <div className="col-md-3"><label className="form-label">CPF</label><input type="text" className="form-control" placeholder="000.000.000-00" /></div>
-              <div className="col-md-3"><label className="form-label">Cargo</label><input type="text" className="form-control" placeholder="Ex: Diretor Administrativo" /></div>
-              <div className="col-md-4"><label className="form-label">E-mail</label><input type="email" className="form-control" placeholder="admin@clinica.com" /></div>
-              <div className="col-md-4"><label className="form-label">Telefone</label><input type="tel" className="form-control" placeholder="(00) 00000-0000" /></div>
-              <div className="col-md-4"><label className="form-label">Login de Acesso</label><input type="text" className="form-control" placeholder="admin.login" /></div>
-              <div className="col-md-6"><label className="form-label">Permissões Avançadas</label><input type="text" className="form-control" placeholder="Ex: Total, Financeiro, RH" /></div>
-              <div className="col-md-6"><label className="form-label">Senha</label><input type="password" className="form-control" placeholder="••••••••" /></div>
-              <div className="col-12 text-end"><button className="adm-btn-primary"><i className="bi bi-check-lg" /> Cadastrar Administrador</button></div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {staffTab === "management" && (
-        <>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-person-plus-fill" /> Cadastrar Novo Gestor</div>
-            <div className="row g-3">
-              <div className="col-md-6"><label className="form-label">Nome Completo</label><input type="text" className="form-control" placeholder="Nome completo" /></div>
-              <div className="col-md-3"><label className="form-label">CPF</label><input type="text" className="form-control" placeholder="000.000.000-00" /></div>
-              <div className="col-md-3"><label className="form-label">Cargo</label><input type="text" className="form-control" placeholder="Ex: Gestor Operacional" /></div>
-              <div className="col-md-4"><label className="form-label">Área / Setor</label><input type="text" className="form-control" placeholder="Ex: Operações, Financeiro" /></div>
-              <div className="col-md-4"><label className="form-label">Data de Nascimento</label><input type="date" className="form-control" /></div>
-              <div className="col-md-4"><label className="form-label">E-mail</label><input type="email" className="form-control" placeholder="gestor@clinica.com" /></div>
-              <div className="col-md-4"><label className="form-label">Telefone</label><input type="tel" className="form-control" placeholder="(00) 00000-0000" /></div>
-              <div className="col-md-4">
-                <label className="form-label">Nível de Acesso</label>
-                <select className="form-select"><option>Selecione</option><option>Básico</option><option>Intermediário</option><option>Avançado</option><option>Total</option></select>
-              </div>
-              <div className="col-md-4"><label className="form-label">Usuário</label><input type="text" className="form-control" placeholder="gestor.login" /></div>
-              <div className="col-md-6"><label className="form-label">Permissões</label><input type="text" className="form-control" placeholder="Ex: Relatórios, Equipe, Escalas" /></div>
-              <div className="col-md-6"><label className="form-label">Senha</label><input type="password" className="form-control" placeholder="••••••••" /></div>
-              <div className="col-12 text-end"><button className="adm-btn-accent"><i className="bi bi-check-lg" /> Cadastrar Gestor</button></div>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </section>
   );
 
-  // ─── CLINIC ───
+  // ─── ESPECIALIDADES ────────────────────────────────────────────────────────
+  const renderSpecialties = () => (
+    <section className="adm-fade-in">
+      {/* Formulário de Especialidade */}
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-plus-circle" /> Cadastrar Especialidade</div>
+        {specFormError   && <div className="alert alert-danger py-2">{specFormError}</div>}
+        {specFormSuccess && <div className="alert alert-success py-2">{specFormSuccess}</div>}
+
+        <form onSubmit={handleCreateSpecialty}>
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Nome da Especialidade *</label>
+              <input className="form-control" value={specialtyForm.name} onChange={setSpecField("name")} placeholder="Ex: Cardiologia" />
+            </div>
+            <div className="col-md-8">
+              <label className="form-label">Descrição</label>
+              <input className="form-control" value={specialtyForm.description} onChange={setSpecField("description")} placeholder="Breve descrição da especialidade..." />
+            </div>
+          </div>
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingSpec}>
+              <i className="bi bi-check-lg" /> {submittingSpec ? "Cadastrando..." : "Cadastrar Especialidade"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Lista de Especialidades */}
+      <div className="adm-card">
+        <div className="adm-card-title">
+          <i className="bi bi-award-fill" /> Especialidades Cadastradas
+          <span className="ms-2 badge bg-secondary">{specialties.length}</span>
+        </div>
+        {specialties.length === 0 ? (
+          <div className="text-center py-4 text-muted">Nenhuma especialidade cadastrada ainda.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="adm-table">
+              <thead>
+                <tr><th>Nome</th><th>Descrição</th></tr>
+              </thead>
+              <tbody>
+                {specialties.map(s => (
+                  <tr key={s.id}>
+                    <td className="fw-semibold">{s.name}</td>
+                    <td>{s.description || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  // ─── CLINIC ───────────────────────────────────────────────────────────────
   const renderClinic = () => (
     <section className="adm-fade-in">
-      <div className="row g-4">
-        <div className="col-lg-5">
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-hospital" /> Dados da Clínica</div>
-            {[
-              { icon: "bi-building", label: "Nome", value: "Clínica Saúde Integrada" },
-              { icon: "bi-file-earmark-text", label: "CNPJ", value: "12.345.678/0001-90" },
-              { icon: "bi-geo-alt", label: "Endereço", value: "Av. Paulista, 1000 — São Paulo, SP" },
-              { icon: "bi-telephone", label: "Telefone", value: "(11) 3456-7890" },
-              { icon: "bi-envelope", label: "E-mail", value: "contato@clinicasaude.com" },
-            ].map((item, i) => (
-              <div className="adm-clinic-info-item" key={i}>
-                <div className="adm-clinic-info-icon"><i className={`bi ${item.icon}`} /></div>
-                <div><div className="adm-clinic-info-label">{item.label}</div><div className="adm-clinic-info-value">{item.value}</div></div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="col-lg-7">
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-pencil-square" /> Editar Dados da Clínica</div>
+      {/* Formulário de Clínica */}
+      <div className="adm-card mb-4">
+        <div className="adm-card-title"><i className="bi bi-plus-circle" /> Cadastrar Nova Clínica</div>
+        {clinicFormError   && <div className="alert alert-danger py-2">{clinicFormError}</div>}
+        {clinicFormSuccess && <div className="alert alert-success py-2">{clinicFormSuccess}</div>}
+
+        <form onSubmit={handleCreateClinic}>
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-hospital" /> Dados da Clínica</div>
             <div className="row g-3">
-              <div className="col-md-8"><label className="form-label">Nome da Clínica</label><input type="text" className="form-control" defaultValue="Clínica Saúde Integrada" /></div>
-              <div className="col-md-4"><label className="form-label">CNPJ</label><input type="text" className="form-control" defaultValue="12.345.678/0001-90" /></div>
-              <div className="col-12"><label className="form-label">Endereço</label><input type="text" className="form-control" defaultValue="Av. Paulista, 1000 — São Paulo, SP" /></div>
-              <div className="col-md-6"><label className="form-label">Telefone</label><input type="tel" className="form-control" defaultValue="(11) 3456-7890" /></div>
-              <div className="col-md-6"><label className="form-label">E-mail</label><input type="email" className="form-control" defaultValue="contato@clinicasaude.com" /></div>
-              <div className="col-12 text-end"><button className="adm-btn-primary"><i className="bi bi-save" /> Salvar Alterações</button></div>
+              <div className="col-md-6">
+                <label className="form-label">Nome da Clínica *</label>
+                <input className="form-control" value={clinicForm.clinicName} onChange={setClinicField("clinicName")} placeholder="Ex: Clínica Saúde" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CNPJ *</label>
+                <input className="form-control" value={clinicForm.cnpj} onChange={setClinicField("cnpj")} placeholder="00.000.000/0000-00" />
+              </div>
+              <div className="col-md-8">
+                <label className="form-label">Endereço</label>
+                <input className="form-control" value={clinicForm.address} onChange={setClinicField("address")} placeholder="Rua, Número, Bairro, Cidade - UF" />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">Telefone</label>
+                <input className="form-control" value={clinicForm.phone} onChange={setClinicField("phone")} placeholder="(00) 0000-0000" />
+              </div>
             </div>
           </div>
-        </div>
+
+          <div className="adm-form-section">
+            <div className="adm-form-section-title"><i className="bi bi-diagram-3" /> Hierarquia</div>
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="form-check form-switch">
+                  <input className="form-check-input" type="checkbox" id="isFilialSwitch" checked={clinicForm.isFilial} onChange={setClinicField("isFilial")} />
+                  <label className="form-check-label fw-bold" htmlFor="isFilialSwitch">Esta clínica é uma filial de outra clínica existente?</label>
+                </div>
+              </div>
+              {clinicForm.isFilial && (
+                <div className="col-md-6">
+                  <label className="form-label">Selecione a Clínica Matriz *</label>
+                  <select className="form-select" value={clinicForm.parentClinicId} onChange={setClinicField("parentClinicId")}>
+                    <option value="">Selecione...</option>
+                    {clinics.filter(c => !c.parentClinic).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="text-end mt-3">
+            <button type="submit" className="adm-btn-primary" disabled={submittingClinic}>
+              <i className="bi bi-check-lg" /> {submittingClinic ? "Cadastrando..." : "Cadastrar Clínica"}
+            </button>
+          </div>
+        </form>
       </div>
+
+      {/* Lista de Clínicas */}
+      <h5 className="mb-3"><i className="bi bi-h-square" /> Clínicas Cadastradas</h5>
+      {clinics.length === 0 ? (
+        <div className="adm-card text-center py-5 text-muted">Nenhuma clínica cadastrada.</div>
+      ) : (
+        <div className="row g-4">
+          {clinics.map(c => (
+            <div className="col-lg-6" key={c.id}>
+              <div className="adm-card">
+                <div className="adm-card-title"><i className="bi bi-hospital" /> {c.name}</div>
+                {[
+                  { icon: "bi-file-earmark-text", label: "CNPJ",      value: c.cnpj },
+                  { icon: "bi-geo-alt",            label: "Endereço",  value: c.address || "—" },
+                  { icon: "bi-telephone",          label: "Telefone",  value: c.phone   || "—" },
+                ].map((item, i) => (
+                  <div className="adm-clinic-info-item" key={i}>
+                    <div className="adm-clinic-info-icon"><i className={`bi ${item.icon}`} /></div>
+                    <div><div className="adm-clinic-info-label">{item.label}</div><div className="adm-clinic-info-value">{item.value}</div></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 
-  // ─── REPORTS ───
+  // ─── seções estáticas ─────────────────────────────────────────────────────
   const renderReports = () => (
     <section className="adm-fade-in">
-      <div className="row g-4 mb-4">
-        {[
-          { icon: "bi-calendar2-week", title: "Consultas Mensais", desc: "Relatório de todas as consultas realizadas no mês", color: "blue" },
-          { icon: "bi-people", title: "Produtividade da Equipe", desc: "Desempenho de médicos e recepcionistas", color: "green" },
-          { icon: "bi-currency-dollar", title: "Financeiro", desc: "Receita, custos e faturamento por período", color: "yellow" },
-          { icon: "bi-graph-up-arrow", title: "Indicadores SLA", desc: "Tempo médio de espera e satisfação", color: "cyan" },
-        ].map((r, i) => (
-          <div className="col-md-6 col-xl-3" key={i}>
-            <div className="adm-kpi-card" style={{ cursor: "pointer" }}>
-              <div className={`adm-kpi-icon ${r.color}`}><i className={`bi ${r.icon}`} /></div>
-              <div className="fw-semibold mb-1" style={{ fontSize: "0.95rem" }}>{r.title}</div>
-              <div className="adm-kpi-sub">{r.desc}</div>
-              <button className="adm-btn-outline mt-3 w-100 justify-content-center" style={{ padding: "7px 14px", fontSize: "0.8rem" }}>
-                <i className="bi bi-download" /> Exportar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="adm-card">
-        <div className="adm-card-title"><i className="bi bi-graph-up" /> Gráfico de Desempenho</div>
-        <div className="adm-chart-placeholder">
-          <i className="bi bi-pie-chart" />
-          Área de gráficos interativos<br />
-          <small>(Integração com biblioteca de gráficos em breve)</small>
-        </div>
+      <div className="adm-card text-center py-5 text-muted">
+        <i className="bi bi-bar-chart-line" style={{ fontSize: "2rem" }} />
+        <div className="mt-2">Relatórios — em desenvolvimento</div>
       </div>
     </section>
   );
 
-  // ─── LOGS ───
   const renderLogs = () => (
     <section className="adm-fade-in">
       <div className="adm-card">
-        <div className="adm-card-title"><i className="bi bi-journal-text" /> Registro de Atividades do Sistema</div>
-        <div className="table-responsive">
-          <table className="adm-table">
-            <thead><tr><th>Ação</th><th>Detalhes</th><th>Usuário</th><th>Data/Hora</th></tr></thead>
-            <tbody>
-              {mockLogs.map((l, i) => (
-                <tr key={i}>
-                  <td><span className={`adm-badge ${l.color === "blue" ? "active" : l.color === "red" ? "inactive" : "pending"}`}>{l.action}</span></td>
-                  <td>{l.detail}</td><td>{l.user}</td><td className="text-muted">{l.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="adm-card-title"><i className="bi bi-journal-text" /> Logs</div>
+        {mockLogs.map((l, i) => (
+          <div className="adm-activity-item" key={i}>
+            <div className={`adm-activity-dot ${l.color}`} />
+            <div>
+              <div className="adm-activity-text"><strong>{l.action}</strong> — {l.detail}</div>
+              <div className="adm-activity-time">{l.time}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
 
-  // ─── SETTINGS ───
   const renderSettings = () => (
     <section className="adm-fade-in">
-      <div className="row g-4">
-        <div className="col-lg-6">
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-bell" /> Notificações</div>
-            {[
-              { label: "E-mail de novos cadastros", desc: "Receber e-mail quando novos colaboradores forem cadastrados", checked: true },
-              { label: "Alertas de segurança", desc: "Notificar tentativas de login suspeitas", checked: true },
-              { label: "Relatórios semanais", desc: "Enviar resumo semanal por e-mail", checked: false },
-            ].map((s, i) => (
-              <div className="adm-setting-row" key={i}>
-                <div><div className="adm-setting-label">{s.label}</div><div className="adm-setting-desc">{s.desc}</div></div>
-                <div className="form-check form-switch"><input className="form-check-input" type="checkbox" defaultChecked={s.checked} style={{ width: "42px", height: "22px" }} /></div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="col-lg-6">
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-clock" /> Horário de Funcionamento</div>
-            <div className="row g-3">
-              <div className="col-6"><label className="form-label">Abertura</label><input type="time" className="form-control" defaultValue="07:00" /></div>
-              <div className="col-6"><label className="form-label">Fechamento</label><input type="time" className="form-control" defaultValue="19:00" /></div>
-              <div className="col-12">
-                <label className="form-label">Dias de Funcionamento</label>
-                <div className="d-flex flex-wrap gap-2">
-                  {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d, i) => (
-                    <button key={i} className={`adm-tab-btn ${i < 5 ? "active" : ""}`} style={{ flex: "0 0 auto", padding: "6px 14px", fontSize: "0.8rem" }}>{d}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="col-12 text-end mt-2"><button className="adm-btn-primary"><i className="bi bi-save" /> Salvar Horários</button></div>
-            </div>
-          </div>
-          <div className="adm-card">
-            <div className="adm-card-title"><i className="bi bi-shield-check" /> Segurança</div>
-            <div className="adm-setting-row">
-              <div><div className="adm-setting-label">Autenticação em dois fatores (2FA)</div><div className="adm-setting-desc">Camada extra de segurança no login</div></div>
-              <div className="form-check form-switch"><input className="form-check-input" type="checkbox" defaultChecked style={{ width: "42px", height: "22px" }} /></div>
-            </div>
-            <div className="adm-setting-row">
-              <div><div className="adm-setting-label">Sessão expira em</div><div className="adm-setting-desc">Tempo máximo de inatividade</div></div>
-              <select className="form-select" style={{ width: "120px" }} defaultValue="30"><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hora</option></select>
-            </div>
-          </div>
-        </div>
+      <div className="adm-card text-center py-5 text-muted">
+        <i className="bi bi-gear" style={{ fontSize: "2rem" }} />
+        <div className="mt-2">Configurações — em desenvolvimento</div>
       </div>
     </section>
   );
 
-  // ─── RENDER SECTION ───
-  const sectionTitles = { overview: "Visão Geral", staff: "Gestão de Equipe", clinic: "Dados da Clínica", reports: "Relatórios", logs: "Logs de Atividade", settings: "Configurações" };
+  // ─── RENDER PRINCIPAL ─────────────────────────────────────────────────────
+  const sectionTitles = {
+    overview: "Visão Geral", staff: "Gestão de Equipe",
+    specialties: "Especialidades", clinic: "Clínicas", 
+    reports: "Relatórios", logs: "Logs", settings: "Configurações",
+  };
 
   const renderContent = () => {
     switch (activeSection) {
-      case "overview": return renderOverview();
-      case "staff": return renderStaff();
-      case "clinic": return renderClinic();
-      case "reports": return renderReports();
-      case "logs": return renderLogs();
-      case "settings": return renderSettings();
-      default: return renderOverview();
+      case "overview":  return renderOverview();
+      case "staff":     return renderStaff();
+      case "specialties": return renderSpecialties();
+      case "clinic":    return renderClinic();
+      case "reports":   return renderReports();
+      case "logs":      return renderLogs();
+      case "settings":  return renderSettings();
+      default:          return renderOverview();
     }
   };
+
+  const initials = (user?.name || "AD").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   return (
     <div className="admin-dashboard">
@@ -569,15 +796,17 @@ export default function DashBoardAdmin() {
               <button className="adm-mobile-toggle" onClick={() => setSidebarOpen(true)}><i className="bi bi-list" /></button>
               <div>
                 <h1 className="adm-header-title">{sectionTitles[activeSection]}</h1>
-                <div className="adm-header-greeting">Bem-vindo(a) de volta, Administrador</div>
+                <div className="adm-header-greeting">Bem-vindo(a), {user?.name || "Administrador"}</div>
               </div>
             </div>
             <div className="adm-header-profile">
               <div className="adm-header-info">
-                <div className="adm-header-name">Admin SCU</div>
-                <div className="adm-header-role">Administrador da Clínica</div>
+                <div className="adm-header-name">{user?.name || "Admin SCU"}</div>
+                <div className="adm-header-role">{user?.email || ""}</div>
               </div>
-              <div className="adm-header-avatar">AD</div>
+              <div className="adm-header-avatar" style={{ cursor: "pointer" }} onClick={handleLogout} title="Sair">
+                {initials}
+              </div>
             </div>
           </header>
           {renderContent()}

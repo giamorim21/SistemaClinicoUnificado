@@ -1,4 +1,3 @@
-// com/scu/clinic_system/config/SecurityConfig.java
 package com.scu.clinic_system.config;
 
 import com.scu.clinic_system.repository.UserRepository;
@@ -16,15 +15,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
+import org.springframework.http.HttpStatus;
 
 @Configuration
-@EnableMethodSecurity // habilita @PreAuthorize
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository repo) {
@@ -32,8 +34,9 @@ public class SecurityConfig {
                 .map(u -> User.builder()
                         .username(u.getEmail())
                         .password(u.getPassword())
-                        .authorities(u.getRoles().stream().map(Enum::name).toArray(String[]::new))
-                        .accountLocked(!u.isEnabled())
+                        // Role.admin -> "ROLE_ADMIN", Role.manager -> "ROLE_MANAGER", etc.
+                        .authorities("ROLE_" + u.getRole().name().toUpperCase())
+                        .accountLocked(!u.isActive())
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
     }
@@ -49,27 +52,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, UserRepository repo) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // <--- ADICIONE ISSO AQUI (Linha vital)
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtAuthenticationFilter(jwt, repo), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwt, repo),
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        // === ÁREA PÚBLICA ===
+                        // Rotas publicas
                         .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/pacients/register").permitAll()
 
-                        // ADICIONE ESTA LINHA ABAIXO:
-                        .requestMatchers("/api/auth/seed-manager").permitAll()
-
-                        // === ÁREA RESTRITA ===
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Rotas restritas por role
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
                         .requestMatchers("/api/reception/**").hasRole("RECEPTIONIST")
-                        .requestMatchers("/api/management/**").hasRole("MANAGEMENT")
-                        .requestMatchers("/api/pacients/**").hasAnyRole("PATIENT","ADMIN")
+                        .requestMatchers("/api/management/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/specialties/**").hasAnyRole("ADMIN", "MANAGER", "DOCTOR")
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                // Retorna 401 JSON ao invés de abrir popup de Basic Auth no navegador
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
         return http.build();
     }
 }

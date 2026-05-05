@@ -97,22 +97,15 @@ function TelaCadastro() {
 
         // Preparar objeto para enviar ao back-end
         const paciente = {
-            fullName: nome,
-            birthDate: dataNasc,
-            age: calcularIdade(dataNasc), // adiciona a idade aqui
-            gender: genero,
-            address: endereco,
-            cpf: cpf.replace(/\D/g, ""),
-            nationality: nacionalidade,
+            name: nome,
             email: email,
+            cpf: cpf.replace(/\D/g, ""),
+            birthDate: dataNasc,
             password: senha,
-            consent: consentimento,
-            consentDate: new Date().toISOString().split("T")[0]
         };
 
-
         try {
-            const response = await fetch("http://localhost:8080/api/pacients/register", {
+            const response = await fetch("/api/pacients/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(paciente),

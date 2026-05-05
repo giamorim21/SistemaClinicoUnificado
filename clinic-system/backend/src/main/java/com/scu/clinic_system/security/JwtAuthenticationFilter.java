@@ -1,8 +1,5 @@
-// com/scu/clinic_system/security/JwtAuthenticationFilter.java
 package com.scu.clinic_system.security;
 
-import com.scu.clinic_system.model.Role;
-import com.scu.clinic_system.model.User;
 import com.scu.clinic_system.repository.UserRepository;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -37,11 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtService.extractUsername(token);
                 var userOpt = userRepository.findByEmail(email);
                 if (userOpt.isPresent() && jwtService.isValid(token, email)) {
-                    User u = userOpt.get();
                     var authorities = jwtService.extractRoles(token).stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
-
                     var auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }

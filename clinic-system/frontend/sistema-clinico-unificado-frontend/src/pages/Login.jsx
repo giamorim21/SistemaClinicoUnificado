@@ -1,85 +1,52 @@
 import { useState } from "react";
 import "../styles/login.css";
-import { Link, useNavigate } from "react-router-dom"; // Importa useNavigate
+import { Link, useNavigate } from "react-router-dom";
+import { saveAuth } from "../utils/auth";
 
 function TelaLogin() {
-  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
-  const [ok, setOk] = useState("");
-  const navigate = useNavigate(); // Inicializa o hook de navegação
+  const [carregando, setCarregando] = useState(false);
+  const navigate = useNavigate();
 
-  // Validador de CPF com dígitos verificadores
-  const validarCPF = (valor) => {
-    const c = (valor || "").replace(/\D/g, "");
-    if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
-    let soma = 0;
-    for (let i = 0; i < 9; i++) soma += parseInt(c.charAt(i)) * (10 - i);
-    let d1 = 11 - (soma % 11);
-    d1 = d1 >= 10 ? 0 : d1;
-    soma = 0;
-    for (let i = 0; i < 10; i++) soma += parseInt(c.charAt(i)) * (11 - i);
-    let d2 = 11 - (soma % 11);
-    d2 = d2 >= 10 ? 0 : d2;
-    return d1 === parseInt(c.charAt(9)) && d2 === parseInt(c.charAt(10));
-  };
-
-  const handleLogin = async (e) => { // Tornada assíncrona
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErro("");
-    setOk("");
 
-    if (!cpf || !senha) {
-      setErro("Preencha CPF e senha.");
+    if (!email || !senha) {
+      setErro("Preencha e-mail e senha.");
       return;
     }
 
-    if (!validarCPF(cpf)) {
-      setErro("Informe um CPF válido.");
-      return;
-    }
-
-    // Preparar objeto para enviar ao back-end
-    const credentials = {
-      cpf: cpf.replace(/\D/g, ""), // Remove pontuação do CPF
-      password: senha,
-    };
-
+    setCarregando(true);
     try {
-      // 1. Chamada de API para Login
-      const response = await fetch("http://localhost:8080/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({ email, password: senha }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Credenciais inválidas ou erro no servidor.");
+        throw new Error("Credenciais inválidas.");
       }
 
-      // Supondo que o back-end retorna um objeto com o tipo (role) do usuário
-      const userData = await response.json(); 
-      
-      // >>> SIMULAÇÃO DE VERIFICAÇÃO DO TIPO DE USUÁRIO
-      const userType = userData.role || "paciente"; // Assume 'paciente' se não vier do back-end
-      
-      if (userType !== 'paciente') {
-         // O back-end deve idealmente retornar 403 Forbidden para isso, mas
-         // aqui adicionamos uma verificação extra.
-         throw new Error("Acesso negado. Esta conta não é de paciente.");
-      }
-      
-      // 2. Login bem-sucedido
-      setOk("Login de paciente realizado com sucesso! Redirecionando...");
-      
-      // 3. Redirecionar para a Dashboard do Paciente
-      navigate("/dashboard-paciente"); 
+      const data = await response.json();
+      // data = { token, name, email, role }
+      saveAuth(data);
 
+      const role = data.role;
+      if (role === "ROLE_MANAGER" || role === "ROLE_ADMIN") {
+        navigate("/dashboard-admin");
+      } else if (role === "ROLE_DOCTOR") {
+        navigate("/dashboard-medico");
+      } else {
+        navigate("/dashboard-paciente");
+      }
     } catch (err) {
-      // Login falhou
-      setErro(err.message);
-      setOk("");
+      setErro(err.message || "Erro ao conectar com o servidor.");
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -91,15 +58,13 @@ function TelaLogin() {
           <p>Insira suas credenciais para realizar o login</p>
 
           <form className="login-form" onSubmit={handleLogin}>
-            <label htmlFor="cpf">CPF</label>
+            <label htmlFor="email">E-mail</label>
             <input
-              id="cpf"
-              type="text"
-              placeholder="000.000.000-00"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
-              inputMode="numeric"
-              pattern="\d{3}\.?\d{3}\.?\d{3}-?\d{2}"
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
 
@@ -107,22 +72,17 @@ function TelaLogin() {
             <input
               id="senha"
               type="password"
+              placeholder="••••••••"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
             />
 
-            <div className="form-options">
-              <label>
-                <input type="checkbox" /> Lembrar de mim por 30 dias
-              </label>
-            </div>
+            <button type="submit" disabled={carregando}>
+              {carregando ? "Entrando..." : "Entrar"}
+            </button>
 
-            <button type="submit">Entrar</button>
-
-            {/* Ajuste nos estilos inline para mensagens */}
-            {erro && <p style={{ color: "red", marginTop: '15px' }}>{erro}</p>}
-            {ok && <p style={{ color: "green", marginTop: '15px' }}>{ok}</p>}
+            {erro && <p style={{ color: "red", marginTop: "15px" }}>{erro}</p>}
 
             <div className="divider">or</div>
 
@@ -132,7 +92,6 @@ function TelaLogin() {
           </form>
         </div>
 
-        {/* Carrossel mantido intacto */}
         <div className="brand-carousel" aria-label="logos de parceiros">
           <div className="brand-track">
             <img src="/assets/sus-logo.png" alt="logo 1" />
