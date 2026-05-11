@@ -8,21 +8,47 @@ body{
 }
 h1,h2,h3,h4,h5,h6{ font-family:"Poppins", ui-serif, system-ui; }
 
-/* ===== Navbar ===== */
-.navbar{
-  box-shadow:0 6px 18px rgba(0,0,0,.04);
-  border-bottom:1px solid rgba(33,37,41,.10);
-  background:rgb(0, 133, 152);
-  height:65px;
+/* ===== Navbar SCU ===== */
+.scu-navbar {
+  background: linear-gradient(135deg, #0D6EFD 0%, #0a58ca 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 20px rgba(13, 110, 253, 0.18);
+  padding-top: 0;
+  padding-bottom: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
-.navbar-brand{ font-weight:700; letter-spacing:.5px; color:#fff; }
-.navbar .nav-link{ color:#fff; font-weight:500; }
-.navbar .nav-link:hover{ color:var(--brand); }
-.btn-demo{
-  background:var(--brand); color:#fff; font-weight:600;
-  border-radius:999px; padding:.5rem 1rem;
+.scu-navbar-scrolled {
+  background: linear-gradient(135deg, #0b5ed7 0%, #084298 100%);
+  box-shadow: 0 4px 24px rgba(13, 110, 253, 0.28);
 }
-.btn-demo:hover{ background:var(--brand-dark); color:#fff; }
+.scu-navbar .navbar-brand { font-weight: 700; color: #fff; }
+.scu-navbar .nav-link {
+  color: rgba(255,255,255,.85); font-weight: 500; font-size: .9rem;
+  padding: .5rem .85rem; border-radius: .5rem; transition: all .2s ease;
+}
+.scu-navbar .nav-link:hover {
+  color: #fff; background: rgba(255,255,255,.12);
+}
+
+/* Dropdown personalizado */
+.scu-dropdown-menu {
+  position: absolute; right: 0; top: calc(100% + 8px);
+  background: #fff; min-width: 220px; z-index: 1050;
+  border: 1px solid rgba(0,0,0,.08);
+  animation: scu-drop .2s ease;
+}
+@keyframes scu-drop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.scu-dropdown-item:hover { background: #f0f6ff; }
+
+.btn-demo {
+  background: #20C997; color: #fff; font-weight: 600;
+  border: none; border-radius: 999px; padding: .5rem 1rem;
+  transition: background .2s ease;
+}
+.btn-demo:hover { background: #1aa87e; color: #fff; }
 
 /* ===== Sections ===== */
 .section{ padding:72px 0; }
