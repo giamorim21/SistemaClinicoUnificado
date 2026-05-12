@@ -7,10 +7,19 @@ import { apiFetch, getUser, logout } from "../utils/auth";
 
 const COUNCIL_STATES = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
+const isValidCPF = (cpf) => {
+  if (typeof cpf !== 'string') return false;
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) return false;
+  const cpfArray = cpf.split('').map(el => +el);
+  const rest = (count) => (cpfArray.slice(0, count - 12).reduce((soma, el, index) => (soma + el * (count - index)), 0) * 10) % 11 % 10;
+  return rest(10) === cpfArray[9] && rest(11) === cpfArray[10];
+};
+
 const emptyDoctorForm = {
   name: "", email: "", cpf: "", birthDate: "", password: "",
   specialtyId: "", clinicId: "",
-  councilType: "CRM", councilNumber: "", councilState: "SP",
+  councilType: "", councilNumber: "", councilState: "",
   rqe: "", formation: "", languages: "", areasOfPractice: "",
 };
 
@@ -45,6 +54,7 @@ export default function DashBoardAdmin() {
   const [formError,    setFormError]    = useState("");
   const [formSuccess,  setFormSuccess]  = useState("");
   const [submitting,   setSubmitting]   = useState(false);
+  const [doctorMissingFields, setDoctorMissingFields] = useState([]);
 
   // ── formulários de especialidade e clínica ────────────────────────────────
   const [specialtyForm, setSpecialtyForm] = useState(emptySpecialtyForm);
@@ -103,11 +113,20 @@ export default function DashBoardAdmin() {
     e.preventDefault();
     setFormError("");
     setFormSuccess("");
+    setDoctorMissingFields([]);
 
-    const required = ["name","email","cpf","birthDate","password","specialtyId","clinicId","councilNumber","councilState"];
+    const required = ["name","email","cpf","birthDate","password","specialtyId","clinicId","councilType","councilNumber","councilState"];
     const missing = required.filter(k => !doctorForm[k]);
-    if (missing.length) { setFormError("Preencha todos os campos obrigatórios."); return; }
-    if (doctorForm.cpf.replace(/\D/g,"").length !== 11) { setFormError("CPF deve ter 11 dígitos."); return; }
+    if (missing.length) { 
+      setDoctorMissingFields(missing);
+      setFormError("Preencha todos os campos obrigatórios."); 
+      return; 
+    }
+    if (!isValidCPF(doctorForm.cpf)) { 
+      setDoctorMissingFields(["cpf"]);
+      setFormError("CPF inválido."); 
+      return; 
+    }
 
     setSubmitting(true);
     try {
@@ -119,13 +138,26 @@ export default function DashBoardAdmin() {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      const body = await res.json();
-      if (!res.ok) { setFormError(typeof body === "string" ? body : "Erro ao cadastrar médico."); return; }
+      
+      const resText = await res.text();
+      let body;
+      try { body = JSON.parse(resText); } catch { body = resText; }
 
-      setFormSuccess(`Médico ${body.userName} cadastrado com sucesso!`);
+      if (!res.ok) { 
+        let errorMsg = "Erro ao cadastrar médico.";
+        if (typeof body === "string" && body.trim() !== "") errorMsg = body;
+        else if (body?.message) errorMsg = body.message;
+        else if (body?.error) errorMsg = body.error;
+        
+        setFormError(errorMsg); 
+        return; 
+      }
+
+      setFormSuccess(`Médico ${body.userName || "novo"} cadastrado com sucesso!`);
       setDoctorForm(emptyDoctorForm);
       await fetchDoctors();
-    } catch {
+    } catch (err) {
+      console.error(err);
       setFormError("Erro de conexão com o servidor.");
     } finally {
       setSubmitting(false);
@@ -211,6 +243,7 @@ export default function DashBoardAdmin() {
     const required = ["name","email","cpf","birthDate","password","clinicId"];
     const missing = required.filter(k => !managerForm[k]);
     if (missing.length) { setManagerFormError("Preencha todos os campos obrigatórios."); return; }
+    if (!isValidCPF(managerForm.cpf)) { setManagerFormError("CPF inválido."); return; }
 
     setSubmittingManager(true);
     try {
@@ -353,15 +386,15 @@ export default function DashBoardAdmin() {
             <div className="adm-form-section-title"><i className="bi bi-person" /> Dados Pessoais e Acesso</div>
             <div className="row g-3">
               <div className="col-md-6"><label className="form-label">Nome Completo *</label>
-                <input className="form-control" value={doctorForm.name} onChange={setField("name")} placeholder="Dr. João Silva" /></div>
+                <input className={`form-control ${doctorMissingFields.includes("name") ? "border-danger" : ""}`} value={doctorForm.name} onChange={setField("name")} placeholder="Dr. João Silva" /></div>
               <div className="col-md-6"><label className="form-label">E-mail *</label>
-                <input type="email" className="form-control" value={doctorForm.email} onChange={setField("email")} placeholder="medico@clinica.com" /></div>
+                <input type="email" className={`form-control ${doctorMissingFields.includes("email") ? "border-danger" : ""}`} value={doctorForm.email} onChange={setField("email")} placeholder="medico@clinica.com" /></div>
               <div className="col-md-4"><label className="form-label">CPF *</label>
-                <input className="form-control" value={doctorForm.cpf} onChange={setField("cpf")} placeholder="000.000.000-00" /></div>
+                <input className={`form-control ${doctorMissingFields.includes("cpf") ? "border-danger" : ""}`} value={doctorForm.cpf} onChange={setField("cpf")} placeholder="000.000.000-00" /></div>
               <div className="col-md-4"><label className="form-label">Data de Nascimento *</label>
-                <input type="date" className="form-control" value={doctorForm.birthDate} onChange={setField("birthDate")} /></div>
+                <input type="date" className={`form-control ${doctorMissingFields.includes("birthDate") ? "border-danger" : ""}`} value={doctorForm.birthDate} onChange={setField("birthDate")} /></div>
               <div className="col-md-4"><label className="form-label">Senha *</label>
-                <input type="password" className="form-control" value={doctorForm.password} onChange={setField("password")} placeholder="••••••••" /></div>
+                <input type="password" className={`form-control ${doctorMissingFields.includes("password") ? "border-danger" : ""}`} value={doctorForm.password} onChange={setField("password")} placeholder="••••••••" /></div>
             </div>
           </div>
 
@@ -370,15 +403,17 @@ export default function DashBoardAdmin() {
             <div className="adm-form-section-title"><i className="bi bi-card-checklist" /> Conselho Profissional</div>
             <div className="row g-3">
               <div className="col-md-3"><label className="form-label">Tipo *</label>
-                <select className="form-select" value={doctorForm.councilType} onChange={setField("councilType")}>
+                <select className={`form-select ${doctorMissingFields.includes("councilType") ? "border-danger" : ""}`} value={doctorForm.councilType} onChange={setField("councilType")}>
+                  <option value="">Selecione...</option>
                   <option value="CRM">CRM</option>
                   <option value="COREM">COREM</option>
                 </select>
               </div>
               <div className="col-md-4"><label className="form-label">Número *</label>
-                <input className="form-control" value={doctorForm.councilNumber} onChange={setField("councilNumber")} placeholder="00000" /></div>
+                <input className={`form-control ${doctorMissingFields.includes("councilNumber") ? "border-danger" : ""}`} value={doctorForm.councilNumber} onChange={setField("councilNumber")} placeholder="00000" /></div>
               <div className="col-md-2"><label className="form-label">Estado *</label>
-                <select className="form-select" value={doctorForm.councilState} onChange={setField("councilState")}>
+                <select className={`form-select ${doctorMissingFields.includes("councilState") ? "border-danger" : ""}`} value={doctorForm.councilState} onChange={setField("councilState")}>
+                  <option value="">Selecione...</option>
                   {COUNCIL_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -392,14 +427,14 @@ export default function DashBoardAdmin() {
             <div className="adm-form-section-title"><i className="bi bi-award" /> Especialidade e Clínica</div>
             <div className="row g-3">
               <div className="col-md-6"><label className="form-label">Especialidade *</label>
-                <select className="form-select" value={doctorForm.specialtyId} onChange={setField("specialtyId")}>
+                <select className={`form-select ${doctorMissingFields.includes("specialtyId") ? "border-danger" : ""}`} value={doctorForm.specialtyId} onChange={setField("specialtyId")}>
                   <option value="">Selecione...</option>
                   {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
                 {specialties.length === 0 && <div className="form-text text-warning">Nenhuma especialidade cadastrada ainda.</div>}
               </div>
               <div className="col-md-6"><label className="form-label">Clínica *</label>
-                <select className="form-select" value={doctorForm.clinicId} onChange={setField("clinicId")}>
+                <select className={`form-select ${doctorMissingFields.includes("clinicId") ? "border-danger" : ""}`} value={doctorForm.clinicId} onChange={setField("clinicId")}>
                   <option value="">Selecione...</option>
                   {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
