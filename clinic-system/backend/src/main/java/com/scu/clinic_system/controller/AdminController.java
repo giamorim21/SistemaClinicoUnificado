@@ -82,6 +82,8 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Email já cadastrado.");
         if (users.existsByCpf(req.cpf()))
             return ResponseEntity.badRequest().body("CPF já cadastrado.");
+        if (doctors.existsByCouncilTypeAndCouncilNumberAndCouncilState(req.councilType(), req.councilNumber(), req.councilState()))
+            return ResponseEntity.badRequest().body("Conselho Regional já cadastrado para outro médico.");
 
         Specialty specialty = specialties.findById(req.specialtyId())
                 .orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
